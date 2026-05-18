@@ -237,6 +237,61 @@ body.female .panel::before { background:linear-gradient(90deg,transparent,#ff69b
   animation:btnBurn 2.5s infinite;
   background:linear-gradient(180deg,var(--accent),var(--btn-bg1));
 }
+.music-toggle.music-dead {
+  opacity:0.4; animation:none;
+  background:linear-gradient(180deg,var(--btn-bg2),#110000);
+  border-color:#330000; color:#550000;
+}
+
+/* ── 离线横幅 ── */
+.offline-banner {
+  position:fixed; top:0; left:0; right:0; z-index:2000;
+  background:linear-gradient(180deg, #990000, #440000);
+  color:#fff; text-align:center; padding:8px;
+  font-size:0.85em; letter-spacing:2px;
+  transform:translateY(-100%); transition:transform 0.4s;
+  box-shadow:0 0 30px rgba(255,0,0,0.5);
+}
+.offline-banner.show { transform:translateY(0); }
+
+/* ── 帮助按钮 ── */
+.help-btn {
+  position:fixed; top:8px; left:8px; z-index:1000;
+  width:32px; height:32px; border-radius:50%;
+  background:rgba(15,2,2,0.85); border:1px solid var(--border);
+  color:var(--accent); font-size:1em; font-weight:bold;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all 0.3s;
+}
+.help-btn:hover { border-color:var(--accent2); box-shadow:0 0 15px var(--hover-glow); }
+body.female .help-btn { background:rgba(40,15,30,0.85); border-color:#cc3388; color:#ff85c0; }
+
+/* ── 指引弹窗 ── */
+.guide-overlay {
+  position:fixed; inset:0; z-index:3000;
+  background:rgba(0,0,0,0.85);
+  display:flex; align-items:center; justify-content:center;
+  opacity:1; transition:opacity 0.3s;
+}
+.guide-overlay.hidden-guide { opacity:0; pointer-events:none; }
+.guide-modal {
+  background:var(--panel-bg); border:2px solid var(--accent);
+  border-radius:10px; padding:30px 24px; max-width:380px; width:90%;
+  box-shadow:0 0 60px var(--hover-glow);
+  animation:fadeInUp 0.4s ease-out;
+}
+.guide-modal h3 {
+  text-align:center; font-size:1.4em; color:var(--accent);
+  margin-bottom:18px; letter-spacing:3px;
+}
+.guide-modal .guide-step {
+  padding:8px 0; font-size:0.95em; color:var(--text);
+  border-bottom:1px solid rgba(255,0,0,0.08); line-height:1.6;
+}
+.guide-modal .guide-step:last-of-type { border-bottom:none; }
+.guide-modal .btn { display:block; margin:20px auto 0; }
+
+body.female .guide-modal { border-color:#ff69b4; box-shadow:0 0 50px rgba(255,105,180,0.4); }
 
 /* ── 手机适配 ── */
 @media(max-width:500px) {
@@ -255,6 +310,27 @@ body.female .panel::before { background:linear-gradient(90deg,transparent,#ff69b
 </style>
 </head>
 <body>
+
+<!-- 离线横幅 -->
+<div class="offline-banner" id="offlineBanner">⚠️ 网络连接中断 — 离线模式</div>
+
+<!-- 帮助按钮 -->
+<button class="help-btn" id="helpBtn" onclick="showGuide()" title="使用指引">?</button>
+
+<!-- 使用指引弹窗 -->
+<div class="guide-overlay hidden-guide" id="guideOverlay" onclick="if(event.target===this)hideGuide()">
+  <div class="guide-modal">
+    <h3>💀 地狱锻炉 · 使用指引</h3>
+    <div class="guide-step">🔥 <b>第一步：</b>选择性别（男/女主题切换）</div>
+    <div class="guide-step">⚔️ <b>第二步：</b>输入身高体重，计算 BMI</div>
+    <div class="guide-step">🗡️ <b>第三步：</b>选择你的体型血统</div>
+    <div class="guide-step">☠️ <b>第四步：</b>挑选训练计划，开始锻体！</div>
+    <div class="guide-step">✓ 点击动作旁的 ◯ 来打卡</div>
+    <div class="guide-step">🎵 右下角按钮控制音乐</div>
+    <div class="guide-step">📱 可添加到手机桌面当 App 用</div>
+    <button class="btn btn--fire" onclick="hideGuide()">☠️ 懂了，开始锻体！</button>
+  </div>
+</div>
 
 <div class="app">
   <!-- 装饰图标 -->
@@ -335,7 +411,7 @@ body.female .panel::before { background:linear-gradient(90deg,transparent,#ff69b
 <!-- 音乐播放器 -->
 <div class="music-player" id="musicPlayer">
   <button class="music-toggle" id="musicBtn" onclick="toggleMusic()" title="体面DJ版">🎵</button>
-  <audio id="musicAudio" src="https://music.163.com/song/media/outer/url?id=2735919359.mp3" loop preload="auto"></audio>
+  <audio id="musicAudio" src="https://music.163.com/song/media/outer/url?id=2735919359.mp3" loop preload="metadata"></audio>
 </div>
 
 <script>
@@ -651,19 +727,51 @@ function renderDetail(plan){
 
 renderSomas();
 
-// ═══════════════════════════ 音乐自动播放 ═══════════════════════════
+// ═══════════════════════════ 音乐自动播放（健壮版） ═══════════════════════════
 const musicAudio = document.getElementById('musicAudio');
 const musicBtn = document.getElementById('musicBtn');
-let musicOn = false;
+let musicOn = false, musicFailed = false, musicTimer = null;
+
+function killMusicTimer() { if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; } }
 
 function startMusic() {
-  if (musicOn) return;
+  if (musicOn || musicFailed) return;
   musicAudio.volume = 0.6;
+  // 5秒超时：手机网络慢时不给无限缓冲时间
+  musicTimer = setTimeout(() => {
+    if (!musicOn) {
+      musicFailed = true;
+      musicBtn.classList.add('music-dead');
+      musicBtn.textContent = '🔇';
+      musicBtn.title = '音乐加载超时，点击重试';
+      musicAudio.pause();
+    }
+  }, 5000);
   musicAudio.play().then(() => {
+    killMusicTimer();
     musicOn = true;
     musicBtn.classList.add('playing');
-  }).catch(() => {});
+    musicBtn.classList.remove('music-dead');
+    musicBtn.textContent = '🎵';
+  }).catch(() => {
+    killMusicTimer();
+    musicFailed = true;
+    musicBtn.classList.add('music-dead');
+    musicBtn.textContent = '🔇';
+    musicBtn.title = '音乐无法播放，点击重试';
+  });
 }
+
+// 音乐加载失败时静默降级
+musicAudio.addEventListener('error', () => {
+  killMusicTimer();
+  if (!musicOn) {
+    musicFailed = true;
+    musicBtn.classList.add('music-dead');
+    musicBtn.textContent = '🔇';
+    musicBtn.title = '音乐加载失败，点击重试';
+  }
+});
 
 // 页面加载立即尝试播放
 window.addEventListener('DOMContentLoaded', startMusic);
@@ -679,12 +787,43 @@ function toggleMusic() {
     musicOn = false;
     musicBtn.classList.remove('playing');
   } else {
-    musicAudio.play().then(() => {
-      musicOn = true;
-      musicBtn.classList.add('playing');
-    }).catch(() => {});
+    musicFailed = false;
+    musicBtn.classList.remove('music-dead');
+    musicBtn.textContent = '🎵';
+    startMusic();
   }
 }
+// ═══════════════════════════ 指引弹窗 ═══════════════════════════
+function showGuide() {
+  document.getElementById('guideOverlay').classList.remove('hidden-guide');
+}
+function hideGuide() {
+  document.getElementById('guideOverlay').classList.add('hidden-guide');
+  try { localStorage.setItem('hell_forge_seen_guide', '1'); } catch(e) {}
+}
+// 首次访问自动弹出指引
+(function(){
+  try {
+    if (!localStorage.getItem('hell_forge_seen_guide')) {
+      setTimeout(showGuide, 600);
+    }
+  } catch(e) {}
+})();
+
+// ═══════════════════════════ 离线检测 ═══════════════════════════
+(function(){
+  const banner = document.getElementById('offlineBanner');
+  function updateOnline() {
+    if (navigator.onLine) {
+      banner.classList.remove('show');
+    } else {
+      banner.classList.add('show');
+    }
+  }
+  updateOnline();
+  window.addEventListener('online', updateOnline);
+  window.addEventListener('offline', updateOnline);
+})();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
