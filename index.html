@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff4500">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="地狱锻炉">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>地狱锻炉 · HELL FORGE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nosifer&family=Metal+Mania&family=UnifrakturMaguntia&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg: #000; --text: #ccc; --panel-bg: rgba(15,2,2,0.97);
+  --border: #440000; --accent: #cc3300; --accent2: #ff0000;
+  --btn-bg1: #440000; --btn-bg2: #220000;
+  --input-bg: #080000; --font-title: 'UnifrakturMaguntia',cursive;
+  --font-sub: 'Metal Mania',cursive;
+  --card-bg: rgba(30,5,5,0.9); --hover-glow: rgba(255,0,0,0.4);
+  --skull-display: block; --pony-display: none;
+  --flame-color1: 0; --flame-color2: 20;
+}
+
+body.female {
+  --bg: #2a1020; --text: #ffffff; --panel-bg: rgba(40,15,30,0.95);
+  --border: #ff69b4; --accent: #ff85c0; --accent2: #ffb6d9;
+  --btn-bg1: #cc3388; --btn-bg2: #991166;
+  --input-bg: #1a0815; --font-title: 'Comic Sans MS',cursive;
+  --font-sub: 'Comic Sans MS',cursive;
+  --card-bg: rgba(50,20,35,0.9); --hover-glow: rgba(255,105,180,0.4);
+  --skull-display: none; --pony-display: flex;
+  --flame-color1: 280; --flame-color2: 320;
+}
+
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Segoe UI',system-ui,sans-serif;
+  min-height: 100vh; overflow-x: hidden;
+}
+
+/* ── 画布火焰 ── */
+#fireCanvas {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  z-index:0; pointer-events:none;
+}
+
+/* ── 主容器 ── */
+.app {
+  position:relative; z-index:1;
+  max-width: 1000px; margin:0 auto; padding:20px;
+}
+
+/* ── 巨型骷髅头 / 小马 ── */
+.mega-skull {
+  display: var(--skull-display);
+  text-align: center; font-size: clamp(80px, 15vw, 150px);
+  margin: 20px 0;
+  animation: skullBurn 1.5s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 40px #ff0000) drop-shadow(0 0 80px #990000) drop-shadow(0 0 120px #440000);
+}
+.mega-skull .bar {
+  display: inline-block; width: 6px; height: 40px;
+  background: #888; margin: 0 3px; border-radius: 3px;
+  vertical-align: middle; position: relative; top: -30px;
+  animation: pullup 2s ease-in-out infinite;
+}
+.mega-skull .bar:nth-child(2) { animation-delay:0.2s; }
+.mega-skull .bar:nth-child(3) { animation-delay:0.4s; }
+
+@keyframes skullBurn {
+  0% { filter: drop-shadow(0 0 30px #ff0000) drop-shadow(0 0 60px #990000); transform: scale(1); }
+  100% { filter: drop-shadow(0 0 60px #ff0000) drop-shadow(0 0 120px #990000) drop-shadow(0 0 180px #440000); transform: scale(1.05); }
+}
+@keyframes pullup {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-30px); }
+}
+
+/* 小马宝莉区域 */
+.pony-zone {
+  display: var(--pony-display);
+  justify-content: center; align-items: center; gap: 20px;
+  margin: 20px 0; flex-wrap: wrap;
+}
+.pony {
+  font-size: clamp(50px, 10vw, 100px);
+  animation: ponyBounce 1.2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 25px #ff69b4) drop-shadow(0 0 50px #ff1493);
+}
+.pony:nth-child(2) { animation-delay:0.3s; }
+.pony:nth-child(3) { animation-delay:0.6s; }
+@keyframes ponyBounce {
+  0% { transform: translateY(0) rotate(-3deg); }
+  100% { transform: translateY(-15px) rotate(3deg); }
+}
+.rainbow {
+  height: 8px; background: linear-gradient(90deg, #ff0000,#ff8800,#ffff00,#00ff00,#0088ff,#8800ff,#ff0088);
+  border-radius: 4px; width: 80%; margin: 10px auto;
+  animation: rainbowGlow 3s linear infinite;
+  box-shadow: 0 0 20px rgba(255,105,180,0.5);
+}
+@keyframes rainbowGlow {
+  0% { filter: hue-rotate(0); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* ── 头部 ── */
+.header { text-align:center; padding:20px 20px 10px; }
+.header h1 {
+  font-family: var(--font-title);
+  font-size: clamp(42px, 7vw, 64px);
+  color: var(--accent);
+  text-shadow: 0 0 40px var(--accent2), 0 0 80px var(--accent);
+  letter-spacing: 8px;
+  animation: pulse 2s infinite alternate;
+}
+.header .sub {
+  font-family: var(--font-sub);
+  font-size: 1.5em; color: var(--accent);
+  margin-top: 5px; letter-spacing: 10px;
+}
+@keyframes pulse {
+  0% { text-shadow: 0 0 40px var(--accent2), 0 0 80px var(--accent); }
+  100% { text-shadow: 0 0 20px var(--accent2), 0 0 50px var(--accent); }
+}
+
+/* ── 步骤指示器 ── */
+.steps {
+  display:flex; justify-content:center; gap: 50px; margin:15px 0 30px; position:relative;
+}
+.steps::before {
+  content:''; position:absolute; top:22px; left:18%; right:18%; height:3px;
+  background: linear-gradient(90deg, var(--border), var(--accent), var(--border));
+}
+.sw { text-align:center; position:relative; z-index:1; }
+.sn {
+  width:48px; height:48px; border-radius:50%;
+  background: #0a0000; border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:bold; color:#550000; font-size:1em;
+  margin:0 auto 5px; transition:all 0.4s;
+}
+.sn.active {
+  background: var(--btn-bg1); border-color: var(--accent2); color: var(--accent);
+  box-shadow: 0 0 30px var(--hover-glow);
+}
+.sn.done { background:#220000; border-color:#880000; color:var(--accent); }
+.sl { font-size:0.85em; color:#660000; text-transform:uppercase; letter-spacing:3px; }
+
+body.female .steps::before { background: linear-gradient(90deg, #cc3388, #ff69b4, #cc3388); }
+body.female .sn { border-color:#cc3388; background:#1a0815; color:#ff85c0; }
+body.female .sn.active { background:#cc3388; border-color:#ff69b4; color:#fff; }
+body.female .sn.done { background:#661155; border-color:#ff69b4; color:#ffb6d9; }
+body.female .sl { color:#ff85c0; }
+
+/* ── 面板 ── */
+.panel {
+  background: var(--panel-bg);
+  border:2px solid var(--border);
+  border-radius:8px; padding:35px; margin:20px 0;
+  box-shadow: 0 0 50px rgba(255,0,0,0.06), inset 0 0 100px rgba(80,0,0,0.04);
+  position:relative; transition:all 0.5s;
+}
+.panel::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent2), var(--accent), var(--accent2), transparent);
+}
+.panel h2 {
+  font-family: var(--font-sub);
+  font-size: 2.2em; color: var(--accent); margin-bottom:25px; text-align:center;
+  text-shadow: 0 0 25px var(--accent); letter-spacing:5px; text-transform:uppercase;
+}
+
+body.female .panel { box-shadow:0 0 40px rgba(255,105,180,0.12); border-color:#ff69b4; }
+body.female .panel::before { background:linear-gradient(90deg,transparent,#ff69b4,#ff85c0,#ff69b4,transparent); }
+body.female .bmi-box { background:rgba(30,10,20,0.6); border-color:#ff69b4; }
+body.female .soma-card:hover { box-shadow:0 0 35px rgba(255,105,180,0.35); border-color:#ff69b4; }
+body.female .soma-card.selected { border-color:#ff69b4; box-shadow:0 0 45px rgba(255,105,180,0.4); background:rgba(60,20,40,0.95); }
+body.female .soma-desc { color:#ddaacc; }
+body.female .soma-tag { background:#330020; color:#ffb6d9; border-color:#ff69b4; }
+body.female .soma-rec { background:#330020; color:#ff85c0; border-color:#ff69b4; }
+body.female .plan-card { background:rgba(40,15,30,0.8); border-color:#cc3388; }
+body.female .plan-card:hover { box-shadow:0 0 30px rgba(255,105,180,0.3); border-color:#ff69b4; }
+body.female .plan-card.active { background:rgba(60,20,40,0.95); border-color:#ff69b4; box-shadow:0 0 35px rgba(255,105,180,0.4); }
+body.female .plan-sched { color:#ddaacc; }
+body.female .day-title { background:rgba(80,20,50,0.3); border-color:#ff69b4; }
+body.female .workout-table th { background:linear-gradient(180deg,#330020,#1a0815); color:#ff85c0; border-color:#ff69b4; }
+body.female .workout-table td { border-color:#330020; }
+body.female .workout-table tr:hover td { background:rgba(100,20,50,0.2); }
+body.female .progress-bar { background:#1a0815; border-color:#ff69b4; }
+body.female .progress-txt { color:#ddaacc; }
+
+/* ── 性别选择 ── */
+.gender-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 25px; max-width: 700px; margin: 0 auto;
+}
+.gender-card {
+  background: var(--card-bg); border:2px solid var(--border);
+  padding: 40px 20px; text-align:center; cursor:pointer;
+  transition:all 0.4s; font-size: 1.2em;
+}
+.gender-card:hover {
+  border-color: var(--accent2);
+  box-shadow: 0 0 40px var(--hover-glow);
+  transform: translateY(-5px) scale(1.03);
+}
+.gender-card.selected {
+  border-color: var(--accent2);
+  box-shadow: 0 0 60px var(--hover-glow);
+  background: linear-gradient(180deg, rgba(60,15,5,0.9), rgba(20,5,0,0.95));
+}
+.gender-icon { font-size: 4em; margin-bottom: 12px; }
+.gender-name { font-family: var(--font-sub); font-size: 2em; color: var(--accent); letter-spacing:4px; }
+
+body.female .gender-card:hover { box-shadow: 0 0 40px rgba(255,105,180,0.5); border-color:#ff69b4; }
+body.female .gender-card.selected { box-shadow: 0 0 50px rgba(255,105,180,0.5); background: linear-gradient(180deg, rgba(80,20,50,0.9), rgba(30,5,20,0.95)); border-color:#ff69b4; }
+
+/* ── 输入 ── */
+.form-row {
+  display:flex; flex-wrap:wrap; gap:20px; justify-content:center; align-items:end;
+}
+.field { display:flex; flex-direction:column; gap:6px; }
+.field label {
+  font-size: 0.95em; color: var(--accent); text-transform:uppercase; letter-spacing:4px;
+  font-family: var(--font-sub);
+}
+.field input {
+  background: var(--input-bg); border:2px solid var(--border); color: var(--accent2);
+  padding:14px 20px; border-radius:6px; font-size: 1.4em; width:160px;
+  text-align:center; font-family:inherit;
+}
+.field input:focus {
+  outline:none; border-color: var(--accent2);
+  box-shadow: 0 0 25px var(--hover-glow);
+}
+
+/* ── 按钮 ── */
+.btn {
+  background: linear-gradient(180deg, var(--btn-bg1), var(--btn-bg2));
+  border:2px solid var(--accent); color: var(--accent2);
+  padding:16px 36px; border-radius:6px; font-size:1.2em;
+  cursor:pointer; font-family:var(--font-sub);
+  letter-spacing:4px; transition:all 0.3s; text-transform:uppercase;
+}
+.btn:hover {
+  background: linear-gradient(180deg, var(--accent), var(--btn-bg1));
+  border-color: var(--accent2); color:#fff;
+  box-shadow: 0 0 35px var(--hover-glow);
+  transform: translateY(-3px);
+}
+.btn--fire {
+  background: linear-gradient(180deg, var(--accent), var(--btn-bg1));
+  border-color: var(--accent2);
+  animation: btnBurn 2s infinite;
+}
+@keyframes btnBurn {
+  0%,100% { box-shadow: 0 0 15px var(--hover-glow); }
+  50% { box-shadow: 0 0 40px var(--hover-glow), 0 0 70px rgba(200,0,0,0.3); }
+}
+
+/* ── BMI ── */
+.bmi-box {
+  text-align:center; font-size:1.5em; margin-top:25px; padding:20px;
+  border-radius:8px; background:rgba(10,0,0,0.5); border:1px solid var(--border);
+}
+.bmi-num { font-size:3em; color:var(--accent2); font-weight:bold; font-family:var(--font-sub); }
+.bmi-tag { color:var(--accent); margin-top:6px; letter-spacing:3px; font-size:0.9em; }
+
+/* ── 体型卡片 ── */
+.soma-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:18px; margin:20px 0;
+}
+.soma-card {
+  background:var(--card-bg); border:2px solid var(--border);
+  padding:28px; text-align:center; cursor:pointer; transition:all 0.3s;
+}
+.soma-card:hover { border-color:var(--accent2); box-shadow:0 0 40px var(--hover-glow); transform:translateY(-4px); }
+.soma-card.selected { border-color:var(--accent2); box-shadow:0 0 50px var(--hover-glow); background:rgba(60,15,5,0.9); }
+.soma-icon { font-size:3.5em; margin-bottom:10px; }
+.soma-name { font-family:var(--font-sub); font-size:1.6em; color:var(--accent); margin-bottom:10px; letter-spacing:3px; }
+.soma-desc { font-size:0.95em; color:#887777; line-height:1.7; }
+.soma-tag { display:inline-block; margin-top:10px; padding:4px 16px; background:#220000; font-size:0.85em; color:#cc6600; border:1px solid var(--border); }
+.soma-rec { display:inline-block; margin-top:6px; padding:4px 16px; background:#330000; font-size:0.85em; color:var(--accent2); border:1px solid var(--accent); }
+
+/* ── 计划卡片 ── */
+.plan-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:18px; margin:20px 0;
+}
+.plan-card {
+  background:rgba(20,5,5,0.8); border:2px solid var(--border);
+  padding:25px; cursor:pointer; transition:all 0.3s;
+}
+.plan-card:hover { border-color:var(--accent2); box-shadow:0 0 35px var(--hover-glow); }
+.plan-card.active { border-color:var(--accent2); border-width:3px; background:rgba(40,10,5,0.9); box-shadow:0 0 40px var(--hover-glow); }
+.plan-name { font-family:var(--font-sub); font-size:1.5em; color:var(--accent); margin-bottom:6px; letter-spacing:3px; }
+.plan-sched { font-size:0.95em; color:#996666; }
+.plan-note { margin-top:10px; font-size:0.9em; color:var(--accent); font-style:italic; }
+
+/* ── 训练表格 ── */
+.workout-section { margin-top:25px; }
+.day-title {
+  font-family:var(--font-sub); font-size:1.6em; color:var(--accent2);
+  text-align:center; padding:18px; background:rgba(80,15,0,0.3);
+  border:1px solid var(--border); margin-top:18px; letter-spacing:4px;
+}
+.workout-table { width:100%; border-collapse:collapse; font-size:1.05em; }
+.workout-table th {
+  background:linear-gradient(180deg, #330000, #1a0000);
+  color:var(--accent); padding:14px; text-align:left;
+  font-family:var(--font-sub); font-size:0.95em; letter-spacing:3px;
+  border-bottom:2px solid var(--border); text-transform:uppercase;
+}
+.workout-table td { padding:12px 14px; border-bottom:1px solid #220000; }
+.workout-table tr:hover td { background:rgba(80,15,0,0.15); }
+.workout-table tr.checked td { opacity:0.35; text-decoration:line-through; }
+.workout-table tr.checked td:first-child { opacity:0.7; text-decoration:none; }
+
+.check-cell { text-align:center; cursor:pointer; font-size:1.4em; user-select:none; width:50px; }
+.check-cell.checked { color:var(--accent2); text-shadow:0 0 12px var(--accent2); }
+
+.progress-bar { height:8px; background:#1a0000; margin:18px 0 6px; border:1px solid var(--border); }
+.progress-fill {
+  height:100%; background:linear-gradient(90deg, var(--btn-bg1), var(--accent), var(--accent2));
+  transition:width 0.5s; box-shadow:0 0 12px var(--hover-glow);
+}
+.progress-txt { font-size:0.9em; color:#996666; text-align:right; font-family:var(--font-sub); letter-spacing:3px; }
+
+/* ── 通用 ── */
+.hidden { display:none !important; }
+.nav-row { display:flex; justify-content:center; gap:25px; margin-top:25px; }
+.divider { text-align:center; font-size:2.2em; margin:35px 0 15px; color:var(--accent); letter-spacing:25px; }
+
+@keyframes fadeInUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+.animate-in { animation:fadeInUp 0.5s ease-out; }
+
+@media(max-width:600px) {
+  .gender-grid { grid-template-columns:1fr; }
+  .panel { padding:20px 12px; }
+  .field input { width:120px; }
+  .soma-grid,.plan-grid { grid-template-columns:1fr; }
+  .panel h2 { font-size:1.5em; }
+}
+
+/* ── 音乐播放器 ── */
+.music-player {
+  position:fixed; bottom:20px; right:20px; z-index:999;
+}
+.music-toggle {
+  width:56px; height:56px; border-radius:50%;
+  background:linear-gradient(180deg,var(--btn-bg1),var(--btn-bg2));
+  border:2px solid var(--accent); color:var(--accent2);
+  font-size:1.5em; cursor:pointer; transition:all 0.3s;
+  box-shadow:0 0 20px var(--hover-glow);
+  display:flex; align-items:center; justify-content:center;
+}
+.music-toggle:hover { box-shadow:0 0 35px var(--hover-glow); transform:scale(1.1); }
+.music-toggle.playing {
+  animation:btnBurn 2s infinite;
+  background:linear-gradient(180deg,var(--accent),var(--btn-bg1));
+}
+</style>
+</head>
+<body>
+
+<canvas id="fireCanvas"></canvas>
+
+<div class="app">
+  <!-- 巨型骷髅 / 小马宝莉 -->
+  <div class="mega-skull animate-in" id="megaSkull">
+    <span style="font-size:0.4em;display:inline-block;vertical-align:middle">🏋️</span>
+    💀
+  </div>
+  <div class="pony-zone" id="ponyZone">
+    <span class="pony">🦄</span>
+    <span class="pony">🌈</span>
+    <span class="pony">🦄</span>
+  </div>
+  <div class="rainbow"></div>
+
+  <div class="header animate-in">
+    <h1>HELL FORGE</h1>
+    <div class="sub">地狱锻炉</div>
+  </div>
+
+  <!-- 步骤 -->
+  <div class="steps animate-in">
+    <div class="sw"><div class="sn active" id="s0">⚥</div><div class="sl">性别</div></div>
+    <div class="sw"><div class="sn" id="s1">I</div><div class="sl">测度</div></div>
+    <div class="sw"><div class="sn" id="s2">II</div><div class="sl">血统</div></div>
+    <div class="sw"><div class="sn" id="s3">III</div><div class="sl">试炼</div></div>
+  </div>
+
+  <!-- 步骤0: 性别 -->
+  <div class="panel animate-in" id="genderPanel">
+    <h2>⚥ 选择性别</h2>
+    <div class="gender-grid">
+      <div class="gender-card selected" id="cardMale" onclick="pickGender('male')">
+        <div class="gender-icon">💀</div>
+        <div class="gender-name">MALE</div>
+        <div style="margin-top:8px;color:#cc6666;font-size:0.9em">地狱烈焰 · 骷髅锻体</div>
+      </div>
+      <div class="gender-card" id="cardFemale" onclick="pickGender('female')">
+        <div class="gender-icon">🦄</div>
+        <div class="gender-name">FEMALE</div>
+        <div style="margin-top:8px;color:#ff99cc;font-size:0.9em">小马宝莉 · 粉色健身</div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn--fire" onclick="step1()">☠️ 继续</button>
+    </div>
+  </div>
+
+  <!-- 步骤1: BMI -->
+  <div class="panel hidden" id="bmiPanel">
+    <h2>⚔️ 第一步 · 测度躯体</h2>
+    <div class="form-row">
+      <div class="field"><label>身高 CM</label><input type="number" id="height" placeholder="175" min="100" max="250"></div>
+      <div class="field"><label>体重 KG</label><input type="number" id="weight" placeholder="70" min="30" max="300"></div>
+      <button class="btn btn--fire" onclick="calcBMI()">☠️ 献祭计算</button>
+    </div>
+    <div class="bmi-box hidden" id="bmiResult"></div>
+    <div class="nav-row">
+      <button class="btn" onclick="step0()">◄ 重选性别</button>
+      <button class="btn hidden" id="toSoma" onclick="step2()">➤ 选择血统</button>
+    </div>
+  </div>
+
+  <!-- 步骤2: 体型 -->
+  <div class="panel hidden" id="somaPanel">
+    <h2>🗡️ 第二步 · 血统选择</h2>
+    <div class="soma-grid" id="somaGrid"></div>
+    <div class="nav-row">
+      <button class="btn" onclick="step1()">◄ 返回</button>
+      <button class="btn btn--fire" onclick="step3()">☠️ 进入试炼</button>
+    </div>
+  </div>
+
+  <!-- 步骤3: 训练计划 -->
+  <div class="panel hidden" id="planPanel">
+    <h2 id="planTitle">⚔️ 试炼计划</h2>
+    <div class="plan-grid" id="planGrid"></div>
+    <div class="workout-section" id="workoutSection"></div>
+    <div class="nav-row">
+      <button class="btn" onclick="step0()">◄ 重选性别</button>
+      <button class="btn" onclick="step2()">◄ 重选血统</button>
+    </div>
+  </div>
+
+  <div class="divider">🔥 🔥 🔥</div>
+</div>
+
+<!-- 音乐播放器 - 紧凑右下角 -->
+<div class="music-player" id="musicPlayer">
+  <button class="music-toggle" id="musicBtn" onclick="toggleMusic()" title="体面DJ版">🎵</button>
+  <audio id="musicAudio" src="https://music.163.com/song/media/outer/url?id=2735919359.mp3" loop preload="auto"></audio>
+</div>
+
+<script>
+// ═══════════════════════════ 火焰粒子 ═══════════════════════════
+const canvas=document.getElementById('fireCanvas'), ctx=canvas.getContext('2d');
+let parts=[], MAX=150, hueShift=0;
+
+function resize(){ canvas.width=innerWidth; canvas.height=innerHeight; }
+resize(); addEventListener('resize',resize);
+
+class Flame {
+  constructor(){
+    this.x=Math.random()*canvas.width; this.y=canvas.height+100;
+    this.vx=(Math.random()-.5)*0.6; this.vy=-(Math.random()*2+.8);
+    this.size=Math.random()*5+2; this.life=1; this.decay=Math.random()*.015+.006;
+    this.hue=Math.random()*20;
+  }
+  reset(){
+    this.x=Math.random()*canvas.width; this.y=canvas.height+Math.random()*80;
+    this.vx=(Math.random()-.5)*0.6; this.vy=-(Math.random()*2+.8);
+    this.size=Math.random()*5+2; this.life=1; this.decay=Math.random()*.015+.006;
+    this.hue=Math.random()*20;
+  }
+  update(){ this.x+=this.vx; this.y+=this.vy; this.life-=this.decay; if(this.life<=0)this.reset(); }
+  draw(){
+    const a=this.life*.7;
+    const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.size*3.5);
+    const h=(this.hue+hueShift)%360;
+    g.addColorStop(0,`hsla(${h},100%,65%,${a})`);
+    g.addColorStop(0.4,`hsla(${h+5},100%,35%,${a*.6})`);
+    g.addColorStop(1,'hsla(0,100%,5%,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(this.x,this.y,this.size*3.5,0,Math.PI*2); ctx.fill();
+  }
+}
+for(let i=0;i<MAX;i++) parts.push(new Flame());
+function baseGlow(){
+  if(document.body.classList.contains('female')){
+    // 女生: 明亮星光背景
+    const g=ctx.createLinearGradient(0,0,0,canvas.height);
+    g.addColorStop(0,'rgba(255,240,250,0.03)');
+    g.addColorStop(0.5,'rgba(255,220,240,0.06)');
+    g.addColorStop(1,'rgba(255,200,230,0.1)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,canvas.width,canvas.height);
+  } else {
+    const g=ctx.createLinearGradient(0,canvas.height-150,0,canvas.height);
+    g.addColorStop(0,'rgba(10,0,0,0)'); g.addColorStop(0.3,'rgba(180,10,0,0.04)');
+    g.addColorStop(0.6,'rgba(255,30,0,0.08)'); g.addColorStop(1,'rgba(80,0,0,0.15)');
+    ctx.fillStyle=g; ctx.fillRect(0,canvas.height-150,canvas.width,150);
+  }
+}
+function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  baseGlow();
+  if(document.body.classList.contains('female')){
+    // 女生: 金星闪烁粒子
+    parts.forEach(p=>{
+      p.y-=0.3; p.x+=(Math.random()-.5)*0.4;
+      if(p.y<-30){p.y=canvas.height+30;p.x=Math.random()*canvas.width;}
+      p.life-=.003; if(p.life<=0){p.life=1;p.x=Math.random()*canvas.width;p.y=canvas.height+30;}
+      const a=p.life*.6;
+      const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*2);
+      g.addColorStop(0,`rgba(255,220,100,${a})`);
+      g.addColorStop(0.5,`rgba(255,180,200,${a*.5})`);
+      g.addColorStop(1,'rgba(255,200,230,0)');
+      ctx.fillStyle=g; ctx.beginPath();
+      // 星形
+      const cx=p.x, cy=p.y, r=p.size*2, spikes=5;
+      for(let i=0;i<spikes*2;i++){
+        const rad=(i*Math.PI)/spikes-Math.PI/2;
+        const radius=i%2===0?r:r*.4;
+        i===0?ctx.moveTo(cx+Math.cos(rad)*radius,cy+Math.sin(rad)*radius):
+          ctx.lineTo(cx+Math.cos(rad)*radius,cy+Math.sin(rad)*radius);
+      }
+      ctx.closePath(); ctx.fill();
+    });
+  } else {
+    parts.forEach(p=>{p.update();p.draw();});
+  }
+  requestAnimationFrame(loop);
+}
+loop();
+
+// ═══════════════════════════ 数据库 ═══════════════════════════
+// 每个动作统一 4组 × 12次
+const EX = {
+  chest: [
+    { n:'杠铃卧推' },{ n:'上斜哑铃卧推' },{ n:'哑铃飞鸟' },
+    { n:'绳索夹胸' },{ n:'双杠臂屈伸' },{ n:'器械推胸' },
+  ],
+  back: [
+    { n:'杠铃划船' },{ n:'引体向上' },{ n:'高位下拉' },
+    { n:'哑铃单臂划船' },{ n:'坐姿绳索划船' },{ n:'硬拉' },
+  ],
+  shoulders: [
+    { n:'杠铃推举' },{ n:'哑铃侧平举' },{ n:'哑铃前平举' },
+    { n:'绳索面拉' },{ n:'反向飞鸟' },{ n:'阿诺德推举' },
+  ],
+  arms: [
+    { n:'杠铃弯举' },{ n:'锤式弯举' },{ n:'牧师凳弯举' },
+    { n:'绳索下压' },{ n:'窄距卧推' },{ n:'过头臂屈伸' },
+  ],
+  forearms: [
+    { n:'杠铃腕弯举' },{ n:'反向腕弯举' },{ n:'农夫行走' },
+  ],
+  legs: [
+    { n:'杠铃深蹲' },{ n:'罗马尼亚硬拉' },{ n:'腿举' },
+    { n:'腿弯举' },{ n:'腿屈伸' },{ n:'保加利亚分腿蹲' },
+  ],
+  abs: [
+    { n:'悬垂举腿' },{ n:'卷腹' },{ n:'俄罗斯转体' },
+  ],
+  cardio: [
+    { n:'跑步机间歇冲刺' },{ n:'战绳' },{ n:'划船机' },
+  ],
+};
+
+function fmtEx(arr) { return arr.map(e=>({...e, s:'4', r:'12', rest:'60s'})); }
+
+// ═══════════════════════════ 训练计划 ═══════════════════════════
+
+function plan3(bmi) {
+  const fat = bmi >= 25;
+  return {
+    name:'三分化 PPL', sched:'D1推 | D2拉 | D3腿 | 休1天',
+    days: [
+      { name:'💀 Day 1 · 推', ex:[
+        ...fmtEx(EX.chest.slice(0,2)), fmtEx(EX.shoulders.slice(0,2)),
+        fmtEx(EX.arms.slice(3,5)), fmtEx(EX.abs.slice(0,1)),
+        ...(fat?[{n:'跑步机快走',s:'1',r:'15min',rest:'-'}]:[]),
+      ]},
+      { name:'💀 Day 2 · 拉', ex:[
+        fmtEx(EX.back.slice(5,6))[0], ...fmtEx(EX.back.slice(0,2)),
+        fmtEx(EX.arms.slice(0,2)), fmtEx(EX.forearms.slice(0,1)),
+        ...(fat?[{n:'划船机',s:'1',r:'15min',rest:'-'}]:[]),
+      ]},
+      { name:'💀 Day 3 · 腿', ex:[
+        ...fmtEx(EX.legs.slice(0,4)), fmtEx(EX.abs.slice(1,2)),
+        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+      ]},
+    ],
+    note:bmi<25?'🔥 增肌导向 · 大重量':'⚡ 减脂+力量 · 有氧加持',
+  };
+}
+
+function plan4(bmi) {
+  const fat = bmi >= 25;
+  return {
+    name:'四分化', sched:'D1胸+三头 | D2背+二头+小臂 | D3肩+腹 | D4腿',
+    days: [
+      { name:'💀 Day 1 · 胸 + 三头', ex:[
+        ...fmtEx(EX.chest.slice(0,4)), fmtEx(EX.arms.slice(3,5)),
+        ...(fat?[{n:'跑步机快走',s:'1',r:'15min',rest:'-'}]:[]),
+      ]},
+      { name:'💀 Day 2 · 背 + 二头 + 小臂', ex:[
+        fmtEx(EX.back.slice(5,6))[0], fmtEx(EX.back.slice(0,2))[0],
+        fmtEx(EX.arms.slice(0,2))[0], fmtEx(EX.forearms.slice(0,2))[0],
+        fmtEx(EX.forearms.slice(1,2))[0],
+        ...(fat?[{n:'划船机',s:'1',r:'15min',rest:'-'}]:[]),
+      ]},
+      { name:'💀 Day 3 · 肩 + 腹', ex:[
+        ...fmtEx(EX.shoulders.slice(0,4)), fmtEx(EX.abs.slice(0,2)),
+        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+      ]},
+      { name:'💀 Day 4 · 腿', ex:[
+        ...fmtEx(EX.legs.slice(0,4)), fmtEx(EX.abs.slice(2,3)),
+      ]},
+    ],
+    note:bmi<25?'🔥 均衡增肌 · 小臂专项':'⚡ 全面打磨 · 燃脂塑形',
+  };
+}
+
+function plan5(bmi) {
+  const fat = bmi >= 25;
+  return {
+    name:'五分化 Bro Split', sched:'D1胸 | D2背 | D3肩 | D4手臂+小臂 | D5腿',
+    days: [
+      { name:'💀 Day 1 · 胸', ex:[
+        ...fmtEx(EX.chest.slice(0,5)), fmtEx(EX.abs.slice(0,1)),
+        ...(fat?[{n:'跑步机快走',s:'1',r:'15min',rest:'-'}]:[]),
+      ]},
+      { name:'💀 Day 2 · 背', ex:[
+        fmtEx(EX.back.slice(5,6))[0], ...fmtEx(EX.back.slice(0,3)),
+        fmtEx(EX.abs.slice(1,2))[0],
+        ...(fat?[{n:'划船机',s:'1',r:'15min',rest:'-'}]:[]),
+      ]},
+      { name:'💀 Day 3 · 肩', ex:[
+        ...fmtEx(EX.shoulders.slice(0,5)), fmtEx(EX.abs.slice(2,3))[0],
+        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+      ]},
+      { name:'💀 Day 4 · 手臂 + 小臂', ex:[
+        ...fmtEx(EX.arms.slice(0,3)), fmtEx(EX.arms.slice(3,6)),
+        fmtEx(EX.forearms.slice(0,2))[0], fmtEx(EX.forearms.slice(2,3))[0],
+      ]},
+      { name:'💀 Day 5 · 腿', ex:[
+        ...fmtEx(EX.legs.slice(0,5)), fmtEx(EX.abs.slice(0,1))[0],
+        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+      ]},
+    ],
+    note:bmi<25?'🔥 极限分化增肌':'⚡ 每日精雕 · 极致塑形',
+  };
+}
+
+// CBum 经典健美计划 (Chris Bumstead / Classic Physique Olympia Champion)
+function planCbum(bmi) {
+  const fat = bmi >= 25;
+  return {
+    name:'🏆 CBum 经典健美',
+    sched:'D1胸+三头 | D2背+后束 | D3肩+腹 | D4腿 | D5手臂+小臂',
+    days: [
+      { name:'💀 Day 1 · 胸 + 三头', ex:[
+        {n:'上斜哑铃卧推',s:'4',r:'8-12',rest:'60s'},
+        {n:'杠铃卧推',s:'4',r:'8-12',rest:'90s'},
+        {n:'绳索夹胸',s:'4',r:'12',rest:'60s'},
+        {n:'双杠臂屈伸',s:'4',r:'12',rest:'60s'},
+        {n:'器械推胸',s:'4',r:'12',rest:'60s'},
+        {n:'绳索下压(三头)',s:'4',r:'12',rest:'45s'},
+        ...(fat?[{n:'跑步机快走',s:'1',r:'15min',rest:'-'}]:[]),
+      ]},
+      { name:'💀 Day 2 · 背 + 后束', ex:[
+        {n:'杠铃划船',s:'4',r:'8-12',rest:'90s'},
+        {n:'引体向上',s:'4',r:'8-12',rest:'90s'},
+        {n:'高位下拉',s:'4',r:'10-12',rest:'60s'},
+        {n:'哑铃单臂划船',s:'4',r:'10-12',rest:'60s'},
+        {n:'坐姿绳索划船',s:'4',r:'12',rest:'45s'},
+        {n:'反向飞鸟(后束)',s:'4',r:'12',rest:'45s'},
+        ...(fat?[{n:'划船机',s:'1',r:'15min',rest:'-'}]:[]),
+      ]},
+      { name:'💀 Day 3 · 肩 + 腹', ex:[
+        {n:'杠铃推举',s:'4',r:'8-12',rest:'90s'},
+        {n:'哑铃侧平举',s:'4',r:'12',rest:'45s'},
+        {n:'哑铃前平举',s:'4',r:'12',rest:'45s'},
+        {n:'绳索面拉',s:'4',r:'15',rest:'45s'},
+        {n:'悬垂举腿',s:'4',r:'12',rest:'45s'},
+        {n:'卷腹',s:'4',r:'12',rest:'30s'},
+        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+      ]},
+      { name:'💀 Day 4 · 腿 (CBum腿部日)', ex:[
+        {n:'杠铃深蹲',s:'4',r:'8-12',rest:'120s'},
+        {n:'腿举(倒蹬)',s:'4',r:'10-12',rest:'90s'},
+        {n:'腿屈伸',s:'4',r:'12',rest:'60s'},
+        {n:'保加利亚分腿蹲',s:'4',r:'10-12',rest:'60s'},
+        {n:'罗马尼亚硬拉',s:'4',r:'10-12',rest:'90s'},
+        {n:'站姿提踵',s:'4',r:'12',rest:'45s'},
+      ]},
+      { name:'💀 Day 5 · 手臂 + 小臂', ex:[
+        {n:'杠铃弯举',s:'4',r:'10-12',rest:'60s'},
+        {n:'牧师凳弯举',s:'4',r:'10-12',rest:'60s'},
+        {n:'绳索下压',s:'4',r:'12',rest:'45s'},
+        {n:'窄距卧推',s:'4',r:'8-12',rest:'60s'},
+        {n:'过头臂屈伸',s:'4',r:'12',rest:'45s'},
+        {n:'杠铃腕弯举',s:'4',r:'12',rest:'45s'},
+      ]},
+    ],
+    note:'🏆 「复合动作为王，渐进超负荷是关键」— Chris Bumstead',
+  };
+}
+
+// ═══════════════════════════ 体型 ═══════════════════════════
+const SOMAS = [
+  { id:'ecto', icon:'🧍', name:'外胚型 · ECTOMORPH', desc:'瘦长骨架，代谢如焚，增肌艰难。需大重量、高热量、充足睡眠。', bmi:'< 18.5' },
+  { id:'meso', icon:'🗿', name:'中胚型 · MESOMORPH', desc:'战争机器体质——宽肩窄腰，增肌减脂皆易。适合所有训练方案。', bmi:'18.5–24.9' },
+  { id:'endo', icon:'🦍', name:'内胚型 · ENDOMORPH', desc:'重装体型，骨架粗大，力量潜力极高但易堆积脂肪。需力量+有氧双修。', bmi:'≥ 25' },
+];
+
+// ═══════════════════════════ 状态 ═══════════════════════════
+let S = { gender:'male', step:0, bmi:null, soma:null, plan:null };
+
+function recSoma(bmi){ return bmi<18.5?'ecto':bmi<25?'meso':'endo'; }
+
+function upSteps(){
+  ['s0','s1','s2','s3'].forEach((id,i)=>{
+    const e=document.getElementById(id);
+    e.classList.remove('active','done');
+    if(i===S.step) e.classList.add('active');
+    else if(i<S.step) e.classList.add('done');
+  });
+}
+
+function pickGender(g){
+  S.gender=g;
+  document.getElementById('cardMale').classList.toggle('selected',g==='male');
+  document.getElementById('cardFemale').classList.toggle('selected',g==='female');
+  document.body.classList.toggle('female',g==='female');
+  hueShift = g==='female'? 280 : 0;
+}
+
+document.addEventListener('DOMContentLoaded',()=> pickGender('male'));
+
+// localStorage
+const STORAGE_KEY = 'hell_forge_checks';
+function loadChecks(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}catch{return{};} }
+function saveChecks(c){ localStorage.setItem(STORAGE_KEY,JSON.stringify(c)); }
+function ckKey(pn,di,ei){ return `${pn}__${di}__${ei}`; }
+function toggleCheck(pn,di,ei){
+  const c=loadChecks(); const k=ckKey(pn,di,ei); c[k]=!c[k]; saveChecks(c);
+  renderDetail(S.plan);
+}
+function resetChecks(){ localStorage.removeItem(STORAGE_KEY); if(S.plan) renderDetail(S.plan); }
+
+// ═══════════════════════════ BMI ═══════════════════════════
+function calcBMI(){
+  const h=parseFloat(document.getElementById('height').value)/100;
+  const w=parseFloat(document.getElementById('weight').value);
+  if(!h||!w||h<=0||w<=0) return alert('☠️ 输入有效数字！');
+  S.bmi=w/(h*h);
+  let lb,cl;
+  if(S.bmi<18.5){lb='偏瘦 · 外胚血统';cl='#ff4400';}
+  else if(S.bmi<25){lb='标准 · 中胚血统';cl='#ff0000';}
+  else if(S.bmi<30){lb='偏重 · 内胚血统';cl='#cc0000';}
+  else {lb='沉重 · 纯粹内胚';cl='#990000';}
+  document.getElementById('bmiResult').classList.remove('hidden');
+  document.getElementById('bmiResult').innerHTML=`<div class="bmi-num" style="color:${cl}">${S.bmi.toFixed(1)}</div><div class="bmi-tag">${lb}</div>`;
+  document.getElementById('toSoma').classList.remove('hidden');
+}
+
+// ═══════════════════════════ 步骤 ═══════════════════════════
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  document.getElementById(id).classList.add('animate-in');
+}
+function step1(){
+  S.step=1; S.soma=null; S.plan=null; upSteps();
+  showPanel('bmiPanel');
+}
+function step2(){
+  S.step=2; S.plan=null; upSteps();
+  if(!S.soma&&S.bmi) S.soma=recSoma(S.bmi);
+  showPanel('somaPanel'); renderSomas();
+}
+function step3(){
+  if(!S.soma) return alert('☠️ 选择血统！');
+  S.step=3; upSteps(); showPanel('planPanel'); renderPlans();
+}
+
+// ═══════════════════════════ 渲染 ═══════════════════════════
+function renderSomas(){
+  const rec=S.bmi?recSoma(S.bmi):null;
+  document.getElementById('somaGrid').innerHTML=SOMAS.map(s=>`
+    <div class="soma-card${S.soma===s.id?' selected':''}" onclick="S.soma='${s.id}';renderSomas();">
+      <div class="soma-icon">${s.icon}</div>
+      <div class="soma-name">${s.name}</div>
+      <div class="soma-desc">${s.desc}</div>
+      <div class="soma-tag">BMI ${s.bmi}</div>
+      ${rec===s.id?'<div class="soma-rec">☠️ BMI推荐</div>':''}
+    </div>
+  `).join('');
+}
+
+function renderPlans(){
+  const bmi=S.bmi||22;
+  const soma=SOMAS.find(s=>s.id===S.soma);
+  document.getElementById('planTitle').innerHTML=`⚔️ ${soma.icon} ${soma.name} · 试炼`;
+
+  const plans=[plan3(bmi),plan4(bmi),plan5(bmi),planCbum(bmi)];
+  window._plans = plans; // 全局可访问，修复 onclick bug
+  document.getElementById('planGrid').innerHTML=plans.map((p,i)=>`
+    <div class="plan-card${S.plan&&S.plan.name===p.name?' active':''}" onclick="S.plan=window._plans[${i}];renderPlans();">
+      <div class="plan-name">${p.name}</div>
+      <div class="plan-sched">${p.sched}</div>
+      <div class="plan-note">${p.note}</div>
+    </div>
+  `).join('');
+
+  if(S.plan) renderDetail(S.plan);
+  else document.getElementById('workoutSection').innerHTML='<div style="text-align:center;padding:40px;color:#887777;font-size:1.3em">👆 点击上方选择一个训练计划</div>';
+}
+
+function renderDetail(plan){
+  const checks=loadChecks(), container=document.getElementById('workoutSection');
+  let total=0, done=0;
+  plan.days.forEach((day,di)=>{
+    day.ex.forEach((_,ei)=>{ total++;
+      if(checks[ckKey(plan.name,di,ei)]) done++;
+    });
+  });
+
+  let html=`<div class="progress-bar"><div class="progress-fill" style="width:${total?done/total*100:0}%"></div></div>
+    <div class="progress-txt">☠️ ${done}/${total} · ${total?Math.round(done/total*100):0}%</div>
+    <button class="btn" style="margin-top:10px;font-size:0.9em;padding:10px 20px" onclick="resetChecks()">☠️ 重置打卡</button>`;
+
+  plan.days.forEach((day,di)=>{
+    html+=`<div class="day-title">${day.name}</div><table class="workout-table">
+      <tr><th>✓</th><th>动作</th><th>组数</th><th>次数</th><th>休息</th></tr>`;
+    day.ex.forEach((ex,ei)=>{
+      const key=ckKey(plan.name,di,ei), chk=checks[key];
+      html+=`<tr class="${chk?'checked':''}">
+        <td class="check-cell${chk?' checked':''}" onclick="toggleCheck('${plan.name}',${di},${ei})">${chk?'☠️':'◯'}</td>
+        <td>${ex.n}</td><td>${ex.s}</td><td>${ex.r}</td><td>${ex.rest}</td></tr>`;
+    });
+    html+='</table>';
+  });
+  container.innerHTML=html;
+}
+
+renderSomas();
+
+// ═══════════════════════════ 音乐播放器 ═══════════════════════════
+const musicAudio = document.getElementById('musicAudio');
+let musicOn = false;
+
+// 自动播放
+window.addEventListener('DOMContentLoaded', () => {
+  musicAudio.volume = 0.6;
+  musicAudio.play().then(() => {
+    musicOn = true;
+    document.getElementById('musicBtn').classList.add('playing');
+  }).catch(() => {});
+});
+
+// 首次用户交互时恢复播放
+document.addEventListener('click', () => {
+  if (!musicOn) {
+    musicAudio.play().then(() => {
+      musicOn = true;
+      document.getElementById('musicBtn').classList.add('playing');
+    }).catch(() => {});
+  }
+}, { once: false });
+
+function toggleMusic() {
+  if (musicOn) {
+    musicAudio.pause();
+    musicOn = false;
+    document.getElementById('musicBtn').classList.remove('playing');
+  } else {
+    musicAudio.play().then(() => {
+      musicOn = true;
+      document.getElementById('musicBtn').classList.add('playing');
+    }).catch(() => {});
+  }
+}
+
+// ═══════════════════════════ 返回性别选择 ═══════════════════════════
+function step0() {
+  S.step = 0; S.bmi = null; S.soma = null; S.plan = null;
+  upSteps();
+  showPanel('genderPanel');
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(() => console.log('PWA: SW registered'));
+}
+</script>
+</body>
+</html>
