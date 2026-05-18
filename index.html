@@ -266,6 +266,22 @@ body.female .panel::before { background:linear-gradient(90deg,transparent,#ff69b
 .help-btn:hover { border-color:var(--accent2); box-shadow:0 0 15px var(--hover-glow); }
 body.female .help-btn { background:rgba(40,15,30,0.85); border-color:#cc3388; color:#ff85c0; }
 
+/* ── 语言切换器 ── */
+.lang-switcher {
+  position:fixed; top:8px; right:52px; z-index:1000;
+  display:flex; gap:4px;
+}
+.lang-btn {
+  padding:4px 8px; border-radius:3px; font-size:0.7em;
+  background:rgba(15,2,2,0.85); border:1px solid var(--border);
+  color:#665555; cursor:pointer;
+  transition:all 0.3s; letter-spacing:1px;
+}
+.lang-btn:hover { border-color:var(--accent); color:var(--accent); }
+.lang-btn.lang-active { border-color:var(--accent2); color:var(--accent2); background:rgba(60,15,5,0.9); box-shadow:0 0 10px var(--hover-glow); }
+body.female .lang-btn { background:rgba(40,15,30,0.85); border-color:#cc3388; color:#cc88aa; }
+body.female .lang-btn.lang-active { border-color:#ff69b4; color:#ffb6d9; }
+
 /* ── 指引弹窗 ── */
 .guide-overlay {
   position:fixed; inset:0; z-index:3000;
@@ -317,18 +333,25 @@ body.female .guide-modal { border-color:#ff69b4; box-shadow:0 0 50px rgba(255,10
 <!-- 帮助按钮 -->
 <button class="help-btn" id="helpBtn" onclick="showGuide()" title="使用指引">?</button>
 
+<!-- 语言切换器 -->
+<div class="lang-switcher">
+  <button class="lang-btn" id="lang-en" onclick="setLang('en')" title="English">🇬🇧 EN</button>
+  <button class="lang-btn" id="lang-ru" onclick="setLang('ru')" title="Русский">🇷🇺 RU</button>
+  <button class="lang-btn" id="lang-zh" onclick="setLang('zh')" title="中文">🇨🇳 中</button>
+</div>
+
 <!-- 使用指引弹窗 -->
 <div class="guide-overlay hidden-guide" id="guideOverlay" onclick="if(event.target===this)hideGuide()">
   <div class="guide-modal">
-    <h3>💀 地狱锻炉 · 使用指引</h3>
-    <div class="guide-step">🔥 <b>第一步：</b>选择性别（男/女主题切换）</div>
-    <div class="guide-step">⚔️ <b>第二步：</b>输入身高体重，计算 BMI</div>
-    <div class="guide-step">🗡️ <b>第三步：</b>选择你的体型血统</div>
-    <div class="guide-step">☠️ <b>第四步：</b>挑选训练计划，开始锻体！</div>
-    <div class="guide-step">✓ 点击动作旁的 ◯ 来打卡</div>
-    <div class="guide-step">🎵 右下角按钮控制音乐</div>
-    <div class="guide-step">📱 可添加到手机桌面当 App 用</div>
-    <button class="btn btn--fire" onclick="hideGuide()">☠️ 懂了，开始锻体！</button>
+    <h3 data-i18n="guide_title">💀 Hell Forge · Guide</h3>
+    <div class="guide-step" data-i18n="guide_s1">🔥 Step 1: Choose your gender (male/female theme switch)</div>
+    <div class="guide-step" data-i18n="guide_s2">⚔️ Step 2: Enter height & weight, calculate BMI</div>
+    <div class="guide-step" data-i18n="guide_s3">🗡️ Step 3: Choose your body type (bloodline)</div>
+    <div class="guide-step" data-i18n="guide_s4">☠️ Step 4: Pick a training plan, start forging!</div>
+    <div class="guide-step" data-i18n="guide_s5">✓ Tap ○ next to exercises to check off</div>
+    <div class="guide-step" data-i18n="guide_s6">🎵 Bottom-right button controls music</div>
+    <div class="guide-step" data-i18n="guide_s7">📱 Add to phone home screen as an app</div>
+    <button class="btn btn--fire" onclick="hideGuide()" data-i18n="guide_btn">☠️ Got it, forge!</button>
   </div>
 </div>
 
@@ -337,71 +360,71 @@ body.female .guide-modal { border-color:#ff69b4; box-shadow:0 0 50px rgba(255,10
   <div class="mega-icon" id="megaIcon">💀</div>
 
   <div class="header animate-in">
-    <h1>HELL FORGE</h1>
-    <div class="sub">地狱锻炉</div>
+    <h1 data-i18n="title">HELL FORGE</h1>
+    <div class="sub" data-i18n="subtitle">Hell's Forge</div>
   </div>
 
   <!-- 步骤 -->
   <div class="steps animate-in">
-    <div class="sw"><div class="sn active" id="s0">⚥</div><div class="sl">性别</div></div>
-    <div class="sw"><div class="sn" id="s1">I</div><div class="sl">测度</div></div>
-    <div class="sw"><div class="sn" id="s2">II</div><div class="sl">血统</div></div>
-    <div class="sw"><div class="sn" id="s3">III</div><div class="sl">试炼</div></div>
+    <div class="sw"><div class="sn active" id="s0">⚥</div><div class="sl" data-i18n="step0">Gender</div></div>
+    <div class="sw"><div class="sn" id="s1">I</div><div class="sl" data-i18n="step1">Measurement</div></div>
+    <div class="sw"><div class="sn" id="s2">II</div><div class="sl" data-i18n="step2">Bloodline</div></div>
+    <div class="sw"><div class="sn" id="s3">III</div><div class="sl" data-i18n="step3">Trial</div></div>
   </div>
 
   <!-- 步骤0: 性别 -->
   <div class="panel animate-in" id="genderPanel">
-    <h2>选择性别</h2>
+    <h2 data-i18n="gender_title">Choose Gender</h2>
     <div class="gender-grid">
       <div class="gender-card selected" id="cardMale" onclick="pickGender('male')">
         <div class="gender-icon">💀</div>
-        <div class="gender-name">MALE</div>
-        <div style="margin-top:6px;color:#cc6666;font-size:0.85em">地狱烈焰 · 骷髅锻体</div>
+        <div class="gender-name" data-i18n="male">MALE</div>
+        <div style="margin-top:6px;color:#cc6666;font-size:0.85em"><span data-i18n="male_desc">Hellfire · Skull Forge</span></div>
       </div>
       <div class="gender-card" id="cardFemale" onclick="pickGender('female')">
         <div class="gender-icon">🦄</div>
-        <div class="gender-name">FEMALE</div>
-        <div style="margin-top:6px;color:#ff99cc;font-size:0.85em">小马宝莉 · 粉色健身</div>
+        <div class="gender-name" data-i18n="female">FEMALE</div>
+        <div style="margin-top:6px;color:#ff99cc;font-size:0.85em"><span data-i18n="female_desc">My Little Pony · Pink Fitness</span></div>
       </div>
     </div>
     <div class="nav-row">
-      <button class="btn btn--fire" onclick="step1()">☠️ 继续</button>
+      <button class="btn btn--fire" onclick="step1()" data-i18n="btn_continue">☠️ Continue</button>
     </div>
   </div>
 
   <!-- 步骤1: BMI -->
   <div class="panel hidden" id="bmiPanel">
-    <h2>第一步 · 测度躯体</h2>
+    <h2 data-i18n="bmi_title">Step 1 · Measure Body</h2>
     <div class="form-row">
-      <div class="field"><label>身高 CM</label><input type="number" id="height" placeholder="175" min="100" max="250"></div>
-      <div class="field"><label>体重 KG</label><input type="number" id="weight" placeholder="70" min="30" max="300"></div>
-      <button class="btn btn--fire" onclick="calcBMI()">☠️ 献祭计算</button>
+      <div class="field"><label data-i18n="height">Height CM</label><input type="number" id="height" placeholder="175" min="100" max="250"></div>
+      <div class="field"><label data-i18n="weight">Weight KG</label><input type="number" id="weight" placeholder="70" min="30" max="300"></div>
+      <button class="btn btn--fire" onclick="calcBMI()" data-i18n="btn_calc">☠️ Calculate</button>
     </div>
     <div class="bmi-box hidden" id="bmiResult"></div>
     <div class="nav-row">
-      <button class="btn" onclick="step0()">◄ 重选性别</button>
-      <button class="btn hidden" id="toSoma" onclick="step2()">➤ 选择血统</button>
+      <button class="btn" onclick="step0()" data-i18n="btn_back_gender">◄ Re-select Gender</button>
+      <button class="btn hidden" id="toSoma" onclick="step2()" data-i18n="btn_to_soma">➤ Choose Bloodline</button>
     </div>
   </div>
 
   <!-- 步骤2: 体型 -->
   <div class="panel hidden" id="somaPanel">
-    <h2>第二步 · 血统选择</h2>
+    <h2 data-i18n="soma_title">Step 2 · Choose Bloodline</h2>
     <div class="soma-grid" id="somaGrid"></div>
     <div class="nav-row">
-      <button class="btn" onclick="step1()">◄ 返回</button>
-      <button class="btn btn--fire" onclick="step3()">☠️ 进入试炼</button>
+      <button class="btn" onclick="step1()" data-i18n="btn_back">◄ Back</button>
+      <button class="btn btn--fire" onclick="step3()" data-i18n="btn_to_plan">☠️ Enter Trial</button>
     </div>
   </div>
 
   <!-- 步骤3: 训练计划 -->
   <div class="panel hidden" id="planPanel">
-    <h2 id="planTitle">试炼计划</h2>
+    <h2 id="planTitle" data-i18n="plan_title">Trial Plans</h2>
     <div class="plan-grid" id="planGrid"></div>
     <div class="workout-section" id="workoutSection"></div>
     <div class="nav-row">
-      <button class="btn" onclick="step0()">◄ 重选性别</button>
-      <button class="btn" onclick="step2()">◄ 重选血统</button>
+      <button class="btn" onclick="step0()" data-i18n="btn_back_gender">◄ Re-select Gender</button>
+      <button class="btn" onclick="step2()" data-i18n="btn_resoma">◄ Re-select Bloodline</button>
     </div>
   </div>
 
@@ -410,41 +433,49 @@ body.female .guide-modal { border-color:#ff69b4; box-shadow:0 0 50px rgba(255,10
 
 <!-- 音乐播放器 -->
 <div class="music-player" id="musicPlayer">
-  <button class="music-toggle" id="musicBtn" onclick="toggleMusic()" title="体面DJ版">🎵</button>
+  <button class="music-toggle" id="musicBtn" onclick="toggleMusic()" data-i18n-title="music_title" title="Music">🎵</button>
   <audio id="musicAudio" src="https://music.163.com/song/media/outer/url?id=2735919359.mp3" loop preload="metadata"></audio>
 </div>
 
 <script>
+// ═══════════════════════════ i18n 多语言 ═══════════════════════════
+const I18N = {"en":{"title":"HELL FORGE","subtitle":"Hell's Forge","step0":"Gender","step1":"Measurement","step2":"Bloodline","step3":"Trial","gender_title":"Choose Gender","male":"MALE","male_desc":"Hellfire · Skull Forge","female":"FEMALE","female_desc":"My Little Pony · Pink Fitness","btn_continue":"☠️ Continue","bmi_title":"Step 1 · Measure Body","height":"Height CM","weight":"Weight KG","btn_calc":"☠️ Calculate","bmi_under":"Underweight · Ectomorph","bmi_normal":"Normal · Mesomorph","bmi_over":"Overweight · Endomorph","bmi_obese":"Obese · Pure Endomorph","btn_back_gender":"◄ Re-select Gender","btn_to_soma":"➤ Choose Bloodline","soma_title":"Step 2 · Choose Bloodline","soma_ecto_name":"Ectomorph · ECTOMORPH","soma_ecto_desc":"Lean frame, fast metabolism, hard to gain. Needs heavy weights, high calories, enough sleep.","soma_meso_name":"Mesomorph · MESOMORPH","soma_meso_desc":"Warrior physique — wide shoulders, narrow waist. Easy to gain or lose. Suits all training plans.","soma_endo_name":"Endomorph · ENDOMORPH","soma_endo_desc":"Heavy build, large bone structure, high strength potential but gains fat easily. Needs both strength and cardio.","bmi_tag":"BMI","bmi_rec":"☠️ BMI Recommended","btn_back":"◄ Back","btn_to_plan":"☠️ Enter Trial","plan_title":"Trial Plans","plan_select":"👆 Select a training plan above","plan3_name":"3-Day PPL","plan3_sched":"D1 Push | D2 Pull | D3 Legs | Rest 1","plan3_note_bulk":"🔥 Muscle gain · Heavy weights","plan3_note_cut":"⚡ Fat loss + strength · Cardio included","plan4_name":"4-Day Split","plan4_sched":"D1 Chest+Tris | D2 Back+Bis+Forearms | D3 Shoulders+Abs | D4 Legs","plan4_note_bulk":"🔥 Balanced gains · Forearm focus","plan4_note_cut":"⚡ Full refinement · Fat burning sculpt","plan5_name":"5-Day Bro Split","plan5_sched":"D1 Chest | D2 Back | D3 Shoulders | D4 Arms+Forearms | D5 Legs","plan5_note_bulk":"🔥 Maximum split for mass","plan5_note_cut":"⚡ Daily refinement · Ultimate sculpt","planCbum_name":"🏆 CBum Classic","planCbum_sch... [truncated]
+
+let currentLang='en';
+try{const s=localStorage.getItem('hell_forge_lang');if(s&&I18N[s])currentLang=s;}catch(e){}
+function t(key){return (I18N[currentLang]&&I18N[currentLang][key])||(I18N.en&&I18N.en[key])||key;}
+function setLang(lang){if(!I18N[lang])return;try{localStorage.setItem('hell_forge_lang',lang);}catch(e){}location.reload();}
+
 // ═══════════════════════════ 数据库 ═══════════════════════════
 const EX = {
   chest: [
-    { n:'杠铃卧推' },{ n:'上斜哑铃卧推' },{ n:'哑铃飞鸟' },
-    { n:'绳索夹胸' },{ n:'双杠臂屈伸' },{ n:'器械推胸' },
+    { n:t('ex_bench') },{ n:t('ex_incline_db') },{ n:t('ex_flyes') },
+    { n:t('ex_cable_fly') },{ n:t('ex_dips') },{ n:t('ex_machine_press') },
   ],
   back: [
-    { n:'杠铃划船' },{ n:'引体向上' },{ n:'高位下拉' },
-    { n:'哑铃单臂划船' },{ n:'坐姿绳索划船' },{ n:'硬拉' },
+    { n:t('ex_row') },{ n:t('ex_pullup') },{ n:t('ex_lat_pulldown') },
+    { n:t('ex_db_row') },{ n:t('ex_cable_row') },{ n:t('ex_deadlift') },
   ],
   shoulders: [
-    { n:'杠铃推举' },{ n:'哑铃侧平举' },{ n:'哑铃前平举' },
-    { n:'绳索面拉' },{ n:'反向飞鸟' },{ n:'阿诺德推举' },
+    { n:t('ex_ohp') },{ n:t('ex_lateral') },{ n:t('ex_front_raise') },
+    { n:t('ex_facepull') },{ n:t('ex_reverse_fly') },{ n:t('ex_arnold') },
   ],
   arms: [
-    { n:'杠铃弯举' },{ n:'锤式弯举' },{ n:'牧师凳弯举' },
-    { n:'绳索下压' },{ n:'窄距卧推' },{ n:'过头臂屈伸' },
+    { n:t('ex_curl') },{ n:t('ex_hammer') },{ n:t('ex_preacher') },
+    { n:t('ex_pushdown') },{ n:t('ex_closegrip') },{ n:t('ex_overhead_ext') },
   ],
   forearms: [
-    { n:'杠铃腕弯举' },{ n:'反向腕弯举' },{ n:'农夫行走' },
+    { n:t('ex_wrist_curl') },{ n:t('ex_rev_wrist') },{ n:t('ex_farmers') },
   ],
   legs: [
-    { n:'杠铃深蹲' },{ n:'罗马尼亚硬拉' },{ n:'腿举' },
-    { n:'腿弯举' },{ n:'腿屈伸' },{ n:'保加利亚分腿蹲' },
+    { n:t('ex_squat') },{ n:t('ex_rdl') },{ n:t('ex_legpress') },
+    { n:t('ex_legcurl') },{ n:t('ex_legext') },{ n:t('ex_bulgarian') },
   ],
   abs: [
-    { n:'悬垂举腿' },{ n:'卷腹' },{ n:'俄罗斯转体' },
+    { n:t('ex_hanging_leg') },{ n:t('ex_crunch') },{ n:t('ex_russian_twist') },
   ],
   cardio: [
-    { n:'跑步机间歇冲刺' },{ n:'战绳' },{ n:'划船机' },
+    { n:t('ex_sprint') },{ n:t('ex_battle_rope') },{ n:t('ex_rowing') },
   ],
 };
 
@@ -454,144 +485,144 @@ function fmtEx(arr) { return arr.map(e=>({...e, s:'4', r:'12', rest:'60s'})); }
 function plan3(bmi) {
   const fat = bmi >= 25;
   return {
-    name:'三分化 PPL', sched:'D1推 | D2拉 | D3腿 | 休1天',
+    name:t('plan3_name'), sched:t('plan3_sched'),
     days: [
-      { name:'💀 Day 1 · 推', ex:[
+      { name:t('day1_push'), ex:[
         ...fmtEx(EX.chest.slice(0,2)), fmtEx(EX.shoulders.slice(0,2)),
         fmtEx(EX.arms.slice(3,5)), fmtEx(EX.abs.slice(0,1)),
-        ...(fat?[{n:'跑步机快走',s:'1',r:'15min',rest:'-'}]:[]),
+        ...(fat?[{n:t('ex_treadmill_walk'),s:'1',r:'15min',rest:'-'}]:[]),
       ]},
-      { name:'💀 Day 2 · 拉', ex:[
+      { name:t('day2_pull'), ex:[
         fmtEx(EX.back.slice(5,6))[0], ...fmtEx(EX.back.slice(0,2)),
         fmtEx(EX.arms.slice(0,2)), fmtEx(EX.forearms.slice(0,1)),
-        ...(fat?[{n:'划船机',s:'1',r:'15min',rest:'-'}]:[]),
+        ...(fat?[{n:t('ex_rowing'),s:'1',r:'15min',rest:'-'}]:[]),
       ]},
-      { name:'💀 Day 3 · 腿', ex:[
+      { name:t('day3_legs'), ex:[
         ...fmtEx(EX.legs.slice(0,4)), fmtEx(EX.abs.slice(1,2)),
-        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
       ]},
     ],
-    note:bmi<25?'🔥 增肌导向 · 大重量':'⚡ 减脂+力量 · 有氧加持',
+    note:bmi<25?t('plan3_note_bulk'):t('plan3_note_cut'),
   };
 }
 
 function plan4(bmi) {
   const fat = bmi >= 25;
   return {
-    name:'四分化', sched:'D1胸+三头 | D2背+二头+小臂 | D3肩+腹 | D4腿',
+    name:t('plan4_name'), sched:t('plan4_sched'),
     days: [
-      { name:'💀 Day 1 · 胸 + 三头', ex:[
+      { name:t('day1_chest_tri'), ex:[
         ...fmtEx(EX.chest.slice(0,4)), fmtEx(EX.arms.slice(3,5)),
-        ...(fat?[{n:'跑步机快走',s:'1',r:'15min',rest:'-'}]:[]),
+        ...(fat?[{n:t('ex_treadmill_walk'),s:'1',r:'15min',rest:'-'}]:[]),
       ]},
-      { name:'💀 Day 2 · 背 + 二头 + 小臂', ex:[
+      { name:t('day2_back_bi'), ex:[
         fmtEx(EX.back.slice(5,6))[0], fmtEx(EX.back.slice(0,2))[0],
         fmtEx(EX.arms.slice(0,2))[0], fmtEx(EX.forearms.slice(0,2))[0],
         fmtEx(EX.forearms.slice(1,2))[0],
-        ...(fat?[{n:'划船机',s:'1',r:'15min',rest:'-'}]:[]),
+        ...(fat?[{n:t('ex_rowing'),s:'1',r:'15min',rest:'-'}]:[]),
       ]},
-      { name:'💀 Day 3 · 肩 + 腹', ex:[
+      { name:t('day3_shoulder_abs'), ex:[
         ...fmtEx(EX.shoulders.slice(0,4)), fmtEx(EX.abs.slice(0,2)),
-        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
       ]},
-      { name:'💀 Day 4 · 腿', ex:[
+      { name:t('day4_legs'), ex:[
         ...fmtEx(EX.legs.slice(0,4)), fmtEx(EX.abs.slice(2,3)),
       ]},
     ],
-    note:bmi<25?'🔥 均衡增肌 · 小臂专项':'⚡ 全面打磨 · 燃脂塑形',
+    note:bmi<25?t('plan4_note_bulk'):t('plan4_note_cut'),
   };
 }
 
 function plan5(bmi) {
   const fat = bmi >= 25;
   return {
-    name:'五分化 Bro Split', sched:'D1胸 | D2背 | D3肩 | D4手臂+小臂 | D5腿',
+    name:t('plan5_name'), sched:t('plan5_sched'),
     days: [
-      { name:'💀 Day 1 · 胸', ex:[
+      { name:t('day1_chest'), ex:[
         ...fmtEx(EX.chest.slice(0,5)), fmtEx(EX.abs.slice(0,1)),
-        ...(fat?[{n:'跑步机快走',s:'1',r:'15min',rest:'-'}]:[]),
+        ...(fat?[{n:t('ex_treadmill_walk'),s:'1',r:'15min',rest:'-'}]:[]),
       ]},
-      { name:'💀 Day 2 · 背', ex:[
+      { name:t('day2_back'), ex:[
         fmtEx(EX.back.slice(5,6))[0], ...fmtEx(EX.back.slice(0,3)),
         fmtEx(EX.abs.slice(1,2))[0],
-        ...(fat?[{n:'划船机',s:'1',r:'15min',rest:'-'}]:[]),
+        ...(fat?[{n:t('ex_rowing'),s:'1',r:'15min',rest:'-'}]:[]),
       ]},
-      { name:'💀 Day 3 · 肩', ex:[
+      { name:t('day3_shoulders'), ex:[
         ...fmtEx(EX.shoulders.slice(0,5)), fmtEx(EX.abs.slice(2,3))[0],
-        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
       ]},
-      { name:'💀 Day 4 · 手臂 + 小臂', ex:[
+      { name:t('day4_arms'), ex:[
         ...fmtEx(EX.arms.slice(0,3)), fmtEx(EX.arms.slice(3,6)),
         fmtEx(EX.forearms.slice(0,2))[0], fmtEx(EX.forearms.slice(2,3))[0],
       ]},
-      { name:'💀 Day 5 · 腿', ex:[
+      { name:t('day5_legs'), ex:[
         ...fmtEx(EX.legs.slice(0,5)), fmtEx(EX.abs.slice(0,1))[0],
-        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
       ]},
     ],
-    note:bmi<25?'🔥 极限分化增肌':'⚡ 每日精雕 · 极致塑形',
+    note:bmi<25?t('plan5_note_bulk'):t('plan5_note_cut'),
   };
 }
 
 function planCbum(bmi) {
   const fat = bmi >= 25;
   return {
-    name:'🏆 CBum 经典健美',
-    sched:'D1胸+三头 | D2背+后束 | D3肩+腹 | D4腿 | D5手臂+小臂',
+    name:t('planCbum_name'),
+    sched:t('planCbum_sched'),
     days: [
-      { name:'💀 Day 1 · 胸 + 三头', ex:[
-        {n:'上斜哑铃卧推',s:'4',r:'8-12',rest:'60s'},
-        {n:'杠铃卧推',s:'4',r:'8-12',rest:'90s'},
-        {n:'绳索夹胸',s:'4',r:'12',rest:'60s'},
-        {n:'双杠臂屈伸',s:'4',r:'12',rest:'60s'},
-        {n:'器械推胸',s:'4',r:'12',rest:'60s'},
-        {n:'绳索下压(三头)',s:'4',r:'12',rest:'45s'},
-        ...(fat?[{n:'跑步机快走',s:'1',r:'15min',rest:'-'}]:[]),
+      { name:t('day1_chest_tri'), ex:[
+        {n:t('ex_incline_db'),s:'4',r:'8-12',rest:'60s'},
+        {n:t('ex_bench'),s:'4',r:'8-12',rest:'90s'},
+        {n:t('ex_cable_fly'),s:'4',r:'12',rest:'60s'},
+        {n:t('ex_dips'),s:'4',r:'12',rest:'60s'},
+        {n:t('ex_machine_press'),s:'4',r:'12',rest:'60s'},
+        {n:t('ex_pushdown_tri'),s:'4',r:'12',rest:'45s'},
+        ...(fat?[{n:t('ex_treadmill_walk'),s:'1',r:'15min',rest:'-'}]:[]),
       ]},
-      { name:'💀 Day 2 · 背 + 后束', ex:[
-        {n:'杠铃划船',s:'4',r:'8-12',rest:'90s'},
-        {n:'引体向上',s:'4',r:'8-12',rest:'90s'},
-        {n:'高位下拉',s:'4',r:'10-12',rest:'60s'},
-        {n:'哑铃单臂划船',s:'4',r:'10-12',rest:'60s'},
-        {n:'坐姿绳索划船',s:'4',r:'12',rest:'45s'},
-        {n:'反向飞鸟(后束)',s:'4',r:'12',rest:'45s'},
-        ...(fat?[{n:'划船机',s:'1',r:'15min',rest:'-'}]:[]),
+      { name:t('day2_back_rear'), ex:[
+        {n:t('ex_row'),s:'4',r:'8-12',rest:'90s'},
+        {n:t('ex_pullup'),s:'4',r:'8-12',rest:'90s'},
+        {n:t('ex_lat_pulldown'),s:'4',r:'10-12',rest:'60s'},
+        {n:t('ex_db_row'),s:'4',r:'10-12',rest:'60s'},
+        {n:t('ex_cable_row'),s:'4',r:'12',rest:'45s'},
+        {n:t('ex_reverse_fly_rear'),s:'4',r:'12',rest:'45s'},
+        ...(fat?[{n:t('ex_rowing'),s:'1',r:'15min',rest:'-'}]:[]),
       ]},
-      { name:'💀 Day 3 · 肩 + 腹', ex:[
-        {n:'杠铃推举',s:'4',r:'8-12',rest:'90s'},
-        {n:'哑铃侧平举',s:'4',r:'12',rest:'45s'},
-        {n:'哑铃前平举',s:'4',r:'12',rest:'45s'},
-        {n:'绳索面拉',s:'4',r:'15',rest:'45s'},
-        {n:'悬垂举腿',s:'4',r:'12',rest:'45s'},
-        {n:'卷腹',s:'4',r:'12',rest:'30s'},
-        ...(fat?[{n:'战绳',s:'4',r:'30s',rest:'30s'}]:[]),
+      { name:t('day3_shoulder_abs'), ex:[
+        {n:t('ex_ohp'),s:'4',r:'8-12',rest:'90s'},
+        {n:t('ex_lateral'),s:'4',r:'12',rest:'45s'},
+        {n:t('ex_front_raise'),s:'4',r:'12',rest:'45s'},
+        {n:t('ex_facepull'),s:'4',r:'15',rest:'45s'},
+        {n:t('ex_hanging_leg'),s:'4',r:'12',rest:'45s'},
+        {n:t('ex_crunch'),s:'4',r:'12',rest:'30s'},
+        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
       ]},
-      { name:'💀 Day 4 · 腿 (CBum腿部日)', ex:[
-        {n:'杠铃深蹲',s:'4',r:'8-12',rest:'120s'},
+      { name:t('day4_legs_cbum'), ex:[
+        {n:t('ex_squat'),s:'4',r:'8-12',rest:'120s'},
         {n:'腿举(倒蹬)',s:'4',r:'10-12',rest:'90s'},
-        {n:'腿屈伸',s:'4',r:'12',rest:'60s'},
-        {n:'保加利亚分腿蹲',s:'4',r:'10-12',rest:'60s'},
-        {n:'罗马尼亚硬拉',s:'4',r:'10-12',rest:'90s'},
-        {n:'站姿提踵',s:'4',r:'12',rest:'45s'},
+        {n:t('ex_legext'),s:'4',r:'12',rest:'60s'},
+        {n:t('ex_bulgarian'),s:'4',r:'10-12',rest:'60s'},
+        {n:t('ex_rdl'),s:'4',r:'10-12',rest:'90s'},
+        {n:t('ex_calf_raise'),s:'4',r:'12',rest:'45s'},
       ]},
-      { name:'💀 Day 5 · 手臂 + 小臂', ex:[
-        {n:'杠铃弯举',s:'4',r:'10-12',rest:'60s'},
-        {n:'牧师凳弯举',s:'4',r:'10-12',rest:'60s'},
-        {n:'绳索下压',s:'4',r:'12',rest:'45s'},
-        {n:'窄距卧推',s:'4',r:'8-12',rest:'60s'},
-        {n:'过头臂屈伸',s:'4',r:'12',rest:'45s'},
-        {n:'杠铃腕弯举',s:'4',r:'12',rest:'45s'},
+      { name:t('day4_arms'), ex:[
+        {n:t('ex_curl'),s:'4',r:'10-12',rest:'60s'},
+        {n:t('ex_preacher'),s:'4',r:'10-12',rest:'60s'},
+        {n:t('ex_pushdown'),s:'4',r:'12',rest:'45s'},
+        {n:t('ex_closegrip'),s:'4',r:'8-12',rest:'60s'},
+        {n:t('ex_overhead_ext'),s:'4',r:'12',rest:'45s'},
+        {n:t('ex_wrist_curl'),s:'4',r:'12',rest:'45s'},
       ]},
     ],
-    note:'🏆 「复合动作为王，渐进超负荷是关键」— Chris Bumstead',
+    note:t('planCbum_note'),
   };
 }
 
 // ═══════════════════════════ 体型 ═══════════════════════════
 const SOMAS = [
-  { id:'ecto', icon:'🧍', name:'外胚型 · ECTOMORPH', desc:'瘦长骨架，代谢如焚，增肌艰难。需大重量、高热量、充足睡眠。', bmi:'< 18.5' },
-  { id:'meso', icon:'🗿', name:'中胚型 · MESOMORPH', desc:'战争机器体质——宽肩窄腰，增肌减脂皆易。适合所有训练方案。', bmi:'18.5–24.9' },
-  { id:'endo', icon:'🦍', name:'内胚型 · ENDOMORPH', desc:'重装体型，骨架粗大，力量潜力极高但易堆积脂肪。需力量+有氧双修。', bmi:'≥ 25' },
+  { id:'ecto', icon:'🧍', name:t('soma_ecto_name'), desc:t('soma_ecto_desc'), bmi:t('bmi_tag')+' < 18.5' },
+  { id:'meso', icon:'🗿', name:t('soma_meso_name'), desc:t('soma_meso_desc'), bmi:t('bmi_tag')+' 18.5–24.9' },
+  { id:'endo', icon:'🦍', name:t('soma_endo_name'), desc:t('soma_endo_desc'), bmi:t('bmi_tag')+' ≥ 25' },
 ];
 
 // ═══════════════════════════ 状态 ═══════════════════════════
@@ -633,13 +664,13 @@ function resetChecks(){ localStorage.removeItem(STORAGE_KEY); if(S.plan) renderD
 function calcBMI(){
   const h=parseFloat(document.getElementById('height').value)/100;
   const w=parseFloat(document.getElementById('weight').value);
-  if(!h||!w||h<=0||w<=0) return alert('☠️ 输入有效数字！');
+  if(!h||!w||h<=0||w<=0) return alert(t('alert_invalid'));
   S.bmi=w/(h*h);
   let lb,cl;
-  if(S.bmi<18.5){lb='偏瘦 · 外胚血统';cl='#ff4400';}
-  else if(S.bmi<25){lb='标准 · 中胚血统';cl='#ff0000';}
-  else if(S.bmi<30){lb='偏重 · 内胚血统';cl='#cc0000';}
-  else {lb='沉重 · 纯粹内胚';cl='#990000';}
+  if(S.bmi<18.5){lb=t('bmi_under');cl='#ff4400';}
+  else if(S.bmi<25){lb=t('bmi_normal');cl='#ff0000';}
+  else if(S.bmi<30){lb=t('bmi_over');cl='#cc0000';}
+  else {lb=t('bmi_obese');cl='#990000';}
   document.getElementById('bmiResult').classList.remove('hidden');
   document.getElementById('bmiResult').innerHTML=`<div class="bmi-num" style="color:${cl}">${S.bmi.toFixed(1)}</div><div class="bmi-tag">${lb}</div>`;
   document.getElementById('toSoma').classList.remove('hidden');
@@ -661,7 +692,7 @@ function step2(){
   showPanel('somaPanel'); renderSomas();
 }
 function step3(){
-  if(!S.soma) return alert('☠️ 选择血统！');
+  if(!S.soma) return alert(t('alert_select_soma'));
   S.step=3; upSteps(); showPanel('planPanel'); renderPlans();
 }
 
@@ -674,7 +705,7 @@ function renderSomas(){
       <div class="soma-name">${s.name}</div>
       <div class="soma-desc">${s.desc}</div>
       <div class="soma-tag">BMI ${s.bmi}</div>
-      ${rec===s.id?'<div class="soma-rec">☠️ BMI推荐</div>':''}
+      ${rec===s.id?`<div class="soma-rec">`+t('bmi_rec')+`</div>`:''}
     </div>
   `).join('');
 }
@@ -682,7 +713,7 @@ function renderSomas(){
 function renderPlans(){
   const bmi=S.bmi||22;
   const soma=SOMAS.find(s=>s.id===S.soma);
-  document.getElementById('planTitle').innerHTML=`${soma.icon} ${soma.name} · 试炼`;
+  document.getElementById('planTitle').innerHTML=`${soma.icon} ${soma.name} · `+t('plan_title');
 
   const plans=[plan3(bmi),plan4(bmi),plan5(bmi),planCbum(bmi)];
   window._plans = plans;
@@ -695,7 +726,7 @@ function renderPlans(){
   `).join('');
 
   if(S.plan) renderDetail(S.plan);
-  else document.getElementById('workoutSection').innerHTML='<div style="text-align:center;padding:40px;color:#887777;font-size:1.2em">👆 点击上方选择一个训练计划</div>';
+  else document.getElementById('workoutSection').innerHTML=`<div style="text-align:center;padding:40px;color:#887777;font-size:1.2em">${t('plan_select')}</div>`;
 }
 
 function renderDetail(plan){
@@ -708,12 +739,12 @@ function renderDetail(plan){
   });
 
   let html=`<div class="progress-bar"><div class="progress-fill" style="width:${total?done/total*100:0}%"></div></div>
-    <div class="progress-txt">☠️ ${done}/${total} · ${total?Math.round(done/total*100):0}%</div>
-    <button class="btn" style="margin-top:8px;font-size:0.85em;padding:8px 16px" onclick="resetChecks()">☠️ 重置打卡</button>`;
+    <div class="progress-txt">${t('progress')} ${done}/${total} ${t('of')} ${total?Math.round(done/total*100):0}%</div>
+    <button class="btn" style="margin-top:8px;font-size:0.85em;padding:8px 16px" onclick="resetChecks()">${t('btn_reset')}</button>`;
 
   plan.days.forEach((day,di)=>{
     html+=`<div class="day-title">${day.name}</div><table class="workout-table">
-      <tr><th>✓</th><th>动作</th><th>组数</th><th>次数</th><th>休息</th></tr>`;
+      <tr><th>✓</th><th>${t('th_exercise')}</th><th>${t('th_sets')}</th><th>${t('th_reps')}</th><th>${t('th_rest')}</th></tr>`;
     day.ex.forEach((ex,ei)=>{
       const key=ckKey(plan.name,di,ei), chk=checks[key];
       html+=`<tr class="${chk?'checked':''}">
@@ -814,6 +845,7 @@ function hideGuide() {
 (function(){
   const banner = document.getElementById('offlineBanner');
   function updateOnline() {
+    banner.textContent = t('offline_banner');
     if (navigator.onLine) {
       banner.classList.remove('show');
     } else {
@@ -823,6 +855,30 @@ function hideGuide() {
   updateOnline();
   window.addEventListener('online', updateOnline);
   window.addEventListener('offline', updateOnline);
+})();
+
+// ═══════════════════════════ 语言初始化 ═══════════════════════════
+(function initLang(){
+  // 高亮当前语言按钮
+  const activeBtn = document.getElementById('lang-' + currentLang);
+  if (activeBtn) activeBtn.classList.add('lang-active');
+  
+  // 填充所有 data-i18n 元素
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (key) el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (key) el.title = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (key) el.placeholder = t(key);
+  });
+  
+  // 更新标题
+  document.title = t('title') + ' · ' + t('subtitle');
 })();
 </script>
 <script>
