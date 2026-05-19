@@ -1,890 +1,501 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#ff4500">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="地狱锻炉">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<title>地狱锻炉 · HELL FORGE</title>
-<style>
-/* ═══════ 极简暗黑主题 ═══════ */
-:root {
-  --bg:#0a0000; --text:#ccc; --panel-bg:rgba(15,2,2,0.97);
-  --border:#440000; --accent:#cc3300; --accent2:#ff0000;
-  --btn-bg1:#440000; --btn-bg2:#220000;
-  --input-bg:#080000; --card-bg:rgba(30,5,5,0.9);
-  --hover-glow:rgba(255,0,0,0.4);
-}
-body.female {
-  --bg:#2a1020; --text:#fff; --panel-bg:rgba(40,15,30,0.95);
-  --border:#ff69b4; --accent:#ff85c0; --accent2:#ffb6d9;
-  --btn-bg1:#cc3388; --btn-bg2:#991166;
-  --input-bg:#1a0815; --card-bg:rgba(50,20,35,0.9);
-  --hover-glow:rgba(255,105,180,0.4);
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  background: var(--bg);
-  /* 替代Canvas火焰 — 纯CSS渐变 */
-  background-image:
-    radial-gradient(ellipse at 50% 100%, rgba(200,10,0,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse at 20% 80%, rgba(180,0,0,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(150,0,0,0.05) 0%, transparent 50%);
-  color: var(--text);
-  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
-  min-height: 100vh; overflow-x: hidden;
-}
-body.female {
-  background-image:
-    radial-gradient(ellipse at 50% 100%, rgba(255,105,180,0.1) 0%, transparent 60%),
-    radial-gradient(ellipse at 30% 80%, rgba(255,150,200,0.05) 0%, transparent 50%);
-}
-
-/* ── 主容器 ── */
-.app { position:relative; z-index:1; max-width:800px; margin:0 auto; padding:16px 10px; }
-
-/* ── 头部装饰 ── */
-.mega-icon {
-  text-align:center; font-size: clamp(50px, 10vw, 80px);
-  margin: 10px 0; opacity: 0.85;
-}
-.header { text-align:center; padding:10px 10px 5px; }
-.header h1 {
-  font-family: Georgia,'Times New Roman',serif;
-  font-size: clamp(32px, 6vw, 48px);
-  color: var(--accent);
-  text-shadow: 0 0 30px var(--accent2);
-  letter-spacing: 6px;
-  animation: pulse 3s infinite alternate;
-}
-.header .sub {
-  font-size: 1.2em; color: var(--accent);
-  margin-top: 4px; letter-spacing: 8px;
-}
-@keyframes pulse {
-  0% { text-shadow: 0 0 30px var(--accent2); }
-  100% { text-shadow: 0 0 15px var(--accent2); }
-}
-
-/* ── 步骤指示器 ── */
-.steps {
-  display:flex; justify-content:center; gap: 40px; margin:10px 0 20px; position:relative;
-}
-.steps::before {
-  content:''; position:absolute; top:20px; left:18%; right:18%; height:2px;
-  background: var(--border);
-}
-.sw { text-align:center; position:relative; z-index:1; }
-.sn {
-  width:40px; height:40px; border-radius:50%;
-  background:#0a0000; border:2px solid var(--border);
-  display:flex; align-items:center; justify-content:center;
-  font-weight:bold; color:#550000; font-size:0.9em;
-  margin:0 auto 4px; transition:all 0.3s;
-}
-.sn.active { background:var(--btn-bg1); border-color:var(--accent2); color:var(--accent); box-shadow:0 0 20px var(--hover-glow); }
-.sn.done { background:#220000; border-color:#880000; color:var(--accent); }
-.sl { font-size:0.75em; color:#660000; text-transform:uppercase; letter-spacing:2px; }
-
-body.female .sn { border-color:#cc3388; background:#1a0815; color:#ff85c0; }
-body.female .sn.active { background:#cc3388; border-color:#ff69b4; color:#fff; }
-body.female .sn.done { background:#661155; border-color:#ff69b4; color:#ffb6d9; }
-body.female .sl { color:#ff85c0; }
-
-/* ── 面板 ── */
-.panel {
-  background: var(--panel-bg);
-  border:1px solid var(--border);
-  border-radius:6px; padding:24px 14px; margin:16px 0;
-  box-shadow: 0 0 30px rgba(255,0,0,0.04);
-  transition:all 0.3s;
-}
-.panel::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-}
-.panel h2 {
-  font-size: 1.5em; color: var(--accent); margin-bottom:18px; text-align:center;
-  text-shadow: 0 0 15px var(--accent); letter-spacing:4px; text-transform:uppercase;
-}
-
-body.female .panel { box-shadow:0 0 25px rgba(255,105,180,0.1); border-color:#ff69b4; }
-body.female .panel::before { background:linear-gradient(90deg,transparent,#ff69b4,transparent); }
-
-/* ── 性别选择 ── */
-.gender-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:600px; margin:0 auto; }
-.gender-card {
-  background:var(--card-bg); border:2px solid var(--border);
-  padding:30px 14px; text-align:center; cursor:pointer;
-  transition:all 0.3s; font-size:1.1em;
-}
-.gender-card:hover { border-color:var(--accent2); box-shadow:0 0 25px var(--hover-glow); transform:translateY(-3px); }
-.gender-card.selected { border-color:var(--accent2); box-shadow:0 0 40px var(--hover-glow); background:rgba(40,10,5,0.9); }
-.gender-icon { font-size:3em; margin-bottom:10px; }
-.gender-name { font-family:Georgia,serif; font-size:1.6em; color:var(--accent); letter-spacing:3px; }
-
-/* ── 输入 ── */
-.form-row { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; align-items:end; }
-.field { display:flex; flex-direction:column; gap:4px; }
-.field label { font-size:0.85em; color:var(--accent); text-transform:uppercase; letter-spacing:3px; }
-.field input {
-  background:var(--input-bg); border:2px solid var(--border); color:var(--accent2);
-  padding:12px 16px; border-radius:5px; font-size:1.3em; width:140px;
-  text-align:center; font-family:inherit;
-}
-.field input:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 20px var(--hover-glow); }
-
-/* ── 按钮 ── */
-.btn {
-  background: linear-gradient(180deg, var(--btn-bg1), var(--btn-bg2));
-  border:1px solid var(--accent); color: var(--accent2);
-  padding:14px 28px; border-radius:5px; font-size:1.1em;
-  cursor:pointer; letter-spacing:3px; transition:all 0.3s; text-transform:uppercase;
-}
-.btn:hover { border-color:var(--accent2); color:#fff; box-shadow:0 0 25px var(--hover-glow); }
-.btn--fire {
-  background: linear-gradient(180deg, var(--accent), var(--btn-bg1));
-  border-color: var(--accent2);
-  animation: btnBurn 2.5s infinite;
-}
-@keyframes btnBurn {
-  0%,100% { box-shadow: 0 0 10px var(--hover-glow); }
-  50% { box-shadow: 0 0 30px var(--hover-glow); }
-}
-
-/* ── BMI ── */
-.bmi-box { text-align:center; font-size:1.3em; margin-top:20px; padding:16px; border-radius:6px; background:rgba(10,0,0,0.4); border:1px solid var(--border); }
-.bmi-num { font-size:2.5em; color:var(--accent2); font-weight:bold; }
-.bmi-tag { color:var(--accent); margin-top:4px; letter-spacing:2px; font-size:0.85em; }
-
-/* ── 体型卡片 ── */
-.soma-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin:16px 0; }
-.soma-card {
-  background:var(--card-bg); border:2px solid var(--border);
-  padding:22px; text-align:center; cursor:pointer; transition:all 0.3s;
-}
-.soma-card:hover { border-color:var(--accent2); box-shadow:0 0 25px var(--hover-glow); }
-.soma-card.selected { border-color:var(--accent2); box-shadow:0 0 35px var(--hover-glow); background:rgba(40,10,5,0.9); }
-.soma-icon { font-size:2.8em; margin-bottom:8px; }
-.soma-name { font-family:Georgia,serif; font-size:1.3em; color:var(--accent); margin-bottom:8px; letter-spacing:2px; }
-.soma-desc { font-size:0.9em; color:#887777; line-height:1.6; }
-.soma-tag { display:inline-block; margin-top:8px; padding:3px 12px; background:#220000; font-size:0.8em; color:#cc6600; border:1px solid var(--border); }
-.soma-rec { display:inline-block; margin-top:4px; padding:3px 12px; background:#330000; font-size:0.8em; color:var(--accent2); border:1px solid var(--accent); }
-
-/* ── 计划卡片 ── */
-.plan-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:16px 0; }
-.plan-card {
-  background:rgba(20,5,5,0.8); border:2px solid var(--border);
-  padding:20px; cursor:pointer; transition:all 0.3s;
-}
-.plan-card:hover { border-color:var(--accent2); box-shadow:0 0 25px var(--hover-glow); }
-.plan-card.active { border-color:var(--accent2); border-width:3px; background:rgba(40,10,5,0.9); box-shadow:0 0 35px var(--hover-glow); }
-.plan-name { font-family:Georgia,serif; font-size:1.3em; color:var(--accent); margin-bottom:4px; letter-spacing:2px; }
-.plan-sched { font-size:0.9em; color:#996666; }
-.plan-note { margin-top:8px; font-size:0.85em; color:var(--accent); font-style:italic; }
-
-/* ── 训练表格 ── */
-.workout-section { margin-top:20px; }
-.day-title {
-  font-family:Georgia,serif; font-size:1.3em; color:var(--accent2);
-  text-align:center; padding:14px; background:rgba(50,10,0,0.25);
-  border:1px solid var(--border); margin-top:14px; letter-spacing:3px;
-}
-.workout-table { width:100%; border-collapse:collapse; font-size:0.95em; }
-.workout-table th {
-  background:linear-gradient(180deg, #330000, #1a0000);
-  color:var(--accent); padding:10px; text-align:left;
-  font-size:0.85em; letter-spacing:2px;
-  border-bottom:1px solid var(--border); text-transform:uppercase;
-}
-.workout-table td { padding:10px; border-bottom:1px solid #220000; }
-.workout-table tr:hover td { background:rgba(50,10,0,0.12); }
-.workout-table tr.checked td { opacity:0.35; text-decoration:line-through; }
-.workout-table tr.checked td:first-child { opacity:0.7; text-decoration:none; }
-.check-cell { text-align:center; cursor:pointer; font-size:1.3em; user-select:none; width:44px; }
-.check-cell.checked { color:var(--accent2); text-shadow:0 0 10px var(--accent2); }
-
-.progress-bar { height:6px; background:#1a0000; margin:14px 0 4px; border:1px solid var(--border); }
-.progress-fill {
-  height:100%; background:linear-gradient(90deg, var(--btn-bg1), var(--accent), var(--accent2));
-  transition:width 0.5s; box-shadow:0 0 10px var(--hover-glow);
-}
-.progress-txt { font-size:0.85em; color:#996666; text-align:right; letter-spacing:2px; }
-
-/* ── 通用 ── */
-.hidden { display:none !important; }
-.nav-row { display:flex; justify-content:center; gap:16px; margin-top:20px; flex-wrap:wrap; }
-.divider { text-align:center; font-size:1.5em; margin:25px 0 10px; color:var(--accent); letter-spacing:15px; }
-
-@keyframes fadeInUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
-.animate-in { animation:fadeInUp 0.4s ease-out; }
-
-/* ── 音乐播放器 ── */
-.music-player { position:fixed; bottom:16px; right:16px; z-index:999; }
-.music-toggle {
-  width:48px; height:48px; border-radius:50%;
-  background:linear-gradient(180deg,var(--btn-bg1),var(--btn-bg2));
-  border:1px solid var(--accent); color:var(--accent2);
-  font-size:1.3em; cursor:pointer; transition:all 0.3s;
-  box-shadow:0 0 15px var(--hover-glow);
-  display:flex; align-items:center; justify-content:center;
-}
-.music-toggle.playing {
-  animation:btnBurn 2.5s infinite;
-  background:linear-gradient(180deg,var(--accent),var(--btn-bg1));
-}
-.music-toggle.music-dead {
-  opacity:0.4; animation:none;
-  background:linear-gradient(180deg,var(--btn-bg2),#110000);
-  border-color:#330000; color:#550000;
-}
-
-/* ── 离线横幅 ── */
-.offline-banner {
-  position:fixed; top:0; left:0; right:0; z-index:2000;
-  background:linear-gradient(180deg, #990000, #440000);
-  color:#fff; text-align:center; padding:8px;
-  font-size:0.85em; letter-spacing:2px;
-  transform:translateY(-100%); transition:transform 0.4s;
-  box-shadow:0 0 30px rgba(255,0,0,0.5);
-}
-.offline-banner.show { transform:translateY(0); }
-
-/* ── 帮助按钮 ── */
-.help-btn {
-  position:fixed; top:8px; left:8px; z-index:1000;
-  width:32px; height:32px; border-radius:50%;
-  background:rgba(15,2,2,0.85); border:1px solid var(--border);
-  color:var(--accent); font-size:1em; font-weight:bold;
-  cursor:pointer; display:flex; align-items:center; justify-content:center;
-  transition:all 0.3s;
-}
-.help-btn:hover { border-color:var(--accent2); box-shadow:0 0 15px var(--hover-glow); }
-body.female .help-btn { background:rgba(40,15,30,0.85); border-color:#cc3388; color:#ff85c0; }
-
-/* ── 语言切换器 ── */
-.lang-switcher {
-  position:fixed; top:8px; right:52px; z-index:1000;
-  display:flex; gap:4px;
-}
-.lang-btn {
-  padding:4px 8px; border-radius:3px; font-size:0.7em;
-  background:rgba(15,2,2,0.85); border:1px solid var(--border);
-  color:#665555; cursor:pointer;
-  transition:all 0.3s; letter-spacing:1px;
-}
-.lang-btn:hover { border-color:var(--accent); color:var(--accent); }
-.lang-btn.lang-active { border-color:var(--accent2); color:var(--accent2); background:rgba(60,15,5,0.9); box-shadow:0 0 10px var(--hover-glow); }
-body.female .lang-btn { background:rgba(40,15,30,0.85); border-color:#cc3388; color:#cc88aa; }
-body.female .lang-btn.lang-active { border-color:#ff69b4; color:#ffb6d9; }
-
-/* ── 指引弹窗 ── */
-.guide-overlay {
-  position:fixed; inset:0; z-index:3000;
-  background:rgba(0,0,0,0.85);
-  display:flex; align-items:center; justify-content:center;
-  opacity:1; transition:opacity 0.3s;
-}
-.guide-overlay.hidden-guide { opacity:0; pointer-events:none; }
-.guide-modal {
-  background:var(--panel-bg); border:2px solid var(--accent);
-  border-radius:10px; padding:30px 24px; max-width:380px; width:90%;
-  box-shadow:0 0 60px var(--hover-glow);
-  animation:fadeInUp 0.4s ease-out;
-}
-.guide-modal h3 {
-  text-align:center; font-size:1.4em; color:var(--accent);
-  margin-bottom:18px; letter-spacing:3px;
-}
-.guide-modal .guide-step {
-  padding:8px 0; font-size:0.95em; color:var(--text);
-  border-bottom:1px solid rgba(255,0,0,0.08); line-height:1.6;
-}
-.guide-modal .guide-step:last-of-type { border-bottom:none; }
-.guide-modal .btn { display:block; margin:20px auto 0; }
-
-body.female .guide-modal { border-color:#ff69b4; box-shadow:0 0 50px rgba(255,105,180,0.4); }
-
-/* ── 手机适配 ── */
-@media(max-width:500px) {
-  .app { padding:8px 4px; }
-  .gender-grid { grid-template-columns:1fr; }
-  .panel { padding:18px 10px; margin:10px 0; }
-  .field input { width:120px; font-size:1.2em; }
-  .soma-grid,.plan-grid { grid-template-columns:1fr; }
-  .panel h2 { font-size:1.3em; }
-  .btn { padding:12px 20px; font-size:1em; }
-  .steps { gap:28px; }
-  .sn { width:34px; height:34px; font-size:0.8em; }
-  .sl { font-size:0.65em; }
-  .header h1 { font-size:clamp(26px,7vw,36px); }
-}
-</style>
-</head>
-<body>
-
-<!-- 离线横幅 -->
-<div class="offline-banner" id="offlineBanner">⚠️ 网络连接中断 — 离线模式</div>
-
-<!-- 帮助按钮 -->
-<button class="help-btn" id="helpBtn" onclick="showGuide()" title="使用指引">?</button>
-
-<!-- 语言切换器 -->
-<div class="lang-switcher">
-  <button class="lang-btn" id="lang-en" onclick="setLang('en')" title="English">🇬🇧 EN</button>
-  <button class="lang-btn" id="lang-ru" onclick="setLang('ru')" title="Русский">🇷🇺 RU</button>
-  <button class="lang-btn" id="lang-zh" onclick="setLang('zh')" title="中文">🇨🇳 中</button>
-</div>
-
-<!-- 使用指引弹窗 -->
-<div class="guide-overlay hidden-guide" id="guideOverlay" onclick="if(event.target===this)hideGuide()">
-  <div class="guide-modal">
-    <h3 data-i18n="guide_title">💀 Hell Forge · Guide</h3>
-    <div class="guide-step" data-i18n="guide_s1">🔥 Step 1: Choose your gender (male/female theme switch)</div>
-    <div class="guide-step" data-i18n="guide_s2">⚔️ Step 2: Enter height & weight, calculate BMI</div>
-    <div class="guide-step" data-i18n="guide_s3">🗡️ Step 3: Choose your body type (bloodline)</div>
-    <div class="guide-step" data-i18n="guide_s4">☠️ Step 4: Pick a training plan, start forging!</div>
-    <div class="guide-step" data-i18n="guide_s5">✓ Tap ○ next to exercises to check off</div>
-    <div class="guide-step" data-i18n="guide_s6">🎵 Bottom-right button controls music</div>
-    <div class="guide-step" data-i18n="guide_s7">📱 Add to phone home screen as an app</div>
-    <button class="btn btn--fire" onclick="hideGuide()" data-i18n="guide_btn">☠️ Got it, forge!</button>
-  </div>
-</div>
-
-<div class="app">
-  <!-- 装饰图标 -->
-  <div class="mega-icon" id="megaIcon">💀</div>
-
-  <div class="header animate-in">
-    <h1 data-i18n="title">HELL FORGE</h1>
-    <div class="sub" data-i18n="subtitle">Hell's Forge</div>
-  </div>
-
-  <!-- 步骤 -->
-  <div class="steps animate-in">
-    <div class="sw"><div class="sn active" id="s0">⚥</div><div class="sl" data-i18n="step0">Gender</div></div>
-    <div class="sw"><div class="sn" id="s1">I</div><div class="sl" data-i18n="step1">Measurement</div></div>
-    <div class="sw"><div class="sn" id="s2">II</div><div class="sl" data-i18n="step2">Bloodline</div></div>
-    <div class="sw"><div class="sn" id="s3">III</div><div class="sl" data-i18n="step3">Trial</div></div>
-  </div>
-
-  <!-- 步骤0: 性别 -->
-  <div class="panel animate-in" id="genderPanel">
-    <h2 data-i18n="gender_title">Choose Gender</h2>
-    <div class="gender-grid">
-      <div class="gender-card selected" id="cardMale" onclick="pickGender('male')">
-        <div class="gender-icon">💀</div>
-        <div class="gender-name" data-i18n="male">MALE</div>
-        <div style="margin-top:6px;color:#cc6666;font-size:0.85em"><span data-i18n="male_desc">Hellfire · Skull Forge</span></div>
-      </div>
-      <div class="gender-card" id="cardFemale" onclick="pickGender('female')">
-        <div class="gender-icon">🦄</div>
-        <div class="gender-name" data-i18n="female">FEMALE</div>
-        <div style="margin-top:6px;color:#ff99cc;font-size:0.85em"><span data-i18n="female_desc">My Little Pony · Pink Fitness</span></div>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn btn--fire" onclick="step1()" data-i18n="btn_continue">☠️ Continue</button>
-    </div>
-  </div>
-
-  <!-- 步骤1: BMI -->
-  <div class="panel hidden" id="bmiPanel">
-    <h2 data-i18n="bmi_title">Step 1 · Measure Body</h2>
-    <div class="form-row">
-      <div class="field"><label data-i18n="height">Height CM</label><input type="number" id="height" placeholder="175" min="100" max="250"></div>
-      <div class="field"><label data-i18n="weight">Weight KG</label><input type="number" id="weight" placeholder="70" min="30" max="300"></div>
-      <button class="btn btn--fire" onclick="calcBMI()" data-i18n="btn_calc">☠️ Calculate</button>
-    </div>
-    <div class="bmi-box hidden" id="bmiResult"></div>
-    <div class="nav-row">
-      <button class="btn" onclick="step0()" data-i18n="btn_back_gender">◄ Re-select Gender</button>
-      <button class="btn hidden" id="toSoma" onclick="step2()" data-i18n="btn_to_soma">➤ Choose Bloodline</button>
-    </div>
-  </div>
-
-  <!-- 步骤2: 体型 -->
-  <div class="panel hidden" id="somaPanel">
-    <h2 data-i18n="soma_title">Step 2 · Choose Bloodline</h2>
-    <div class="soma-grid" id="somaGrid"></div>
-    <div class="nav-row">
-      <button class="btn" onclick="step1()" data-i18n="btn_back">◄ Back</button>
-      <button class="btn btn--fire" onclick="step3()" data-i18n="btn_to_plan">☠️ Enter Trial</button>
-    </div>
-  </div>
-
-  <!-- 步骤3: 训练计划 -->
-  <div class="panel hidden" id="planPanel">
-    <h2 id="planTitle" data-i18n="plan_title">Trial Plans</h2>
-    <div class="plan-grid" id="planGrid"></div>
-    <div class="workout-section" id="workoutSection"></div>
-    <div class="nav-row">
-      <button class="btn" onclick="step0()" data-i18n="btn_back_gender">◄ Re-select Gender</button>
-      <button class="btn" onclick="step2()" data-i18n="btn_resoma">◄ Re-select Bloodline</button>
-    </div>
-  </div>
-
-  <div class="divider">🔥 🔥 🔥</div>
-</div>
-
-<!-- 音乐播放器 -->
-<div class="music-player" id="musicPlayer">
-  <button class="music-toggle" id="musicBtn" onclick="toggleMusic()" data-i18n-title="music_title" title="Music">🎵</button>
-  <audio id="musicAudio" src="https://music.163.com/song/media/outer/url?id=2735919359.mp3" loop preload="metadata"></audio>
-</div>
-
-<script>
-// ═══════════════════════════ i18n 多语言 ═══════════════════════════
-const I18N = {"en":{"title":"HELL FORGE","subtitle":"Hell's Forge","step0":"Gender","step1":"Measurement","step2":"Bloodline","step3":"Trial","gender_title":"Choose Gender","male":"MALE","male_desc":"Hellfire · Skull Forge","female":"FEMALE","female_desc":"My Little Pony · Pink Fitness","btn_continue":"☠️ Continue","bmi_title":"Step 1 · Measure Body","height":"Height CM","weight":"Weight KG","btn_calc":"☠️ Calculate","bmi_under":"Underweight · Ectomorph","bmi_normal":"Normal · Mesomorph","bmi_over":"Overweight · Endomorph","bmi_obese":"Obese · Pure Endomorph","btn_back_gender":"◄ Re-select Gender","btn_to_soma":"➤ Choose Bloodline","soma_title":"Step 2 · Choose Bloodline","soma_ecto_name":"Ectomorph · ECTOMORPH","soma_ecto_desc":"Lean frame, fast metabolism, hard to gain. Needs heavy weights, high calories, enough sleep.","soma_meso_name":"Mesomorph · MESOMORPH","soma_meso_desc":"Warrior physique — wide shoulders, narrow waist. Easy to gain or lose. Suits all training plans.","soma_endo_name":"Endomorph · ENDOMORPH","soma_endo_desc":"Heavy build, large bone structure, high strength potential but gains fat easily. Needs both strength and cardio.","bmi_tag":"BMI","bmi_rec":"☠️ BMI Recommended","btn_back":"◄ Back","btn_to_plan":"☠️ Enter Trial","plan_title":"Trial Plans","plan_select":"👆 Select a training plan above","plan3_name":"3-Day PPL","plan3_sched":"D1 Push | D2 Pull | D3 Legs | Rest 1","plan3_note_bulk":"🔥 Muscle gain · Heavy weights","plan3_note_cut":"⚡ Fat loss + strength · Cardio included","plan4_name":"4-Day Split","plan4_sched":"D1 Chest+Tris | D2 Back+Bis+Forearms | D3 Shoulders+Abs | D4 Legs","plan4_note_bulk":"🔥 Balanced gains · Forearm focus","plan4_note_cut":"⚡ Full refinement · Fat burning sculpt","plan5_name":"5-Day Bro Split","plan5_sched":"D1 Chest | D2 Back | D3 Shoulders | D4 Arms+Forearms | D5 Legs","plan5_note_bulk":"🔥 Maximum split for mass","plan5_note_cut":"⚡ Daily refinement · Ultimate sculpt","planCbum_name":"🏆 CBum Classic","planCbum_sch... [truncated]
-
-let currentLang='en';
-try{const s=localStorage.getItem('hell_forge_lang');if(s&&I18N[s])currentLang=s;}catch(e){}
-function t(key){return (I18N[currentLang]&&I18N[currentLang][key])||(I18N.en&&I18N.en[key])||key;}
-function setLang(lang){if(!I18N[lang])return;try{localStorage.setItem('hell_forge_lang',lang);}catch(e){}location.reload();}
-
-// ═══════════════════════════ 数据库 ═══════════════════════════
-const EX = {
-  chest: [
-    { n:t('ex_bench') },{ n:t('ex_incline_db') },{ n:t('ex_flyes') },
-    { n:t('ex_cable_fly') },{ n:t('ex_dips') },{ n:t('ex_machine_press') },
-  ],
-  back: [
-    { n:t('ex_row') },{ n:t('ex_pullup') },{ n:t('ex_lat_pulldown') },
-    { n:t('ex_db_row') },{ n:t('ex_cable_row') },{ n:t('ex_deadlift') },
-  ],
-  shoulders: [
-    { n:t('ex_ohp') },{ n:t('ex_lateral') },{ n:t('ex_front_raise') },
-    { n:t('ex_facepull') },{ n:t('ex_reverse_fly') },{ n:t('ex_arnold') },
-  ],
-  arms: [
-    { n:t('ex_curl') },{ n:t('ex_hammer') },{ n:t('ex_preacher') },
-    { n:t('ex_pushdown') },{ n:t('ex_closegrip') },{ n:t('ex_overhead_ext') },
-  ],
-  forearms: [
-    { n:t('ex_wrist_curl') },{ n:t('ex_rev_wrist') },{ n:t('ex_farmers') },
-  ],
-  legs: [
-    { n:t('ex_squat') },{ n:t('ex_rdl') },{ n:t('ex_legpress') },
-    { n:t('ex_legcurl') },{ n:t('ex_legext') },{ n:t('ex_bulgarian') },
-  ],
-  abs: [
-    { n:t('ex_hanging_leg') },{ n:t('ex_crunch') },{ n:t('ex_russian_twist') },
-  ],
-  cardio: [
-    { n:t('ex_sprint') },{ n:t('ex_battle_rope') },{ n:t('ex_rowing') },
-  ],
-};
-
-function fmtEx(arr) { return arr.map(e=>({...e, s:'4', r:'12', rest:'60s'})); }
-
-// ═══════════════════════════ 训练计划 ═══════════════════════════
-function plan3(bmi) {
-  const fat = bmi >= 25;
-  return {
-    name:t('plan3_name'), sched:t('plan3_sched'),
-    days: [
-      { name:t('day1_push'), ex:[
-        ...fmtEx(EX.chest.slice(0,2)), fmtEx(EX.shoulders.slice(0,2)),
-        fmtEx(EX.arms.slice(3,5)), fmtEx(EX.abs.slice(0,1)),
-        ...(fat?[{n:t('ex_treadmill_walk'),s:'1',r:'15min',rest:'-'}]:[]),
-      ]},
-      { name:t('day2_pull'), ex:[
-        fmtEx(EX.back.slice(5,6))[0], ...fmtEx(EX.back.slice(0,2)),
-        fmtEx(EX.arms.slice(0,2)), fmtEx(EX.forearms.slice(0,1)),
-        ...(fat?[{n:t('ex_rowing'),s:'1',r:'15min',rest:'-'}]:[]),
-      ]},
-      { name:t('day3_legs'), ex:[
-        ...fmtEx(EX.legs.slice(0,4)), fmtEx(EX.abs.slice(1,2)),
-        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
-      ]},
-    ],
-    note:bmi<25?t('plan3_note_bulk'):t('plan3_note_cut'),
-  };
-}
-
-function plan4(bmi) {
-  const fat = bmi >= 25;
-  return {
-    name:t('plan4_name'), sched:t('plan4_sched'),
-    days: [
-      { name:t('day1_chest_tri'), ex:[
-        ...fmtEx(EX.chest.slice(0,4)), fmtEx(EX.arms.slice(3,5)),
-        ...(fat?[{n:t('ex_treadmill_walk'),s:'1',r:'15min',rest:'-'}]:[]),
-      ]},
-      { name:t('day2_back_bi'), ex:[
-        fmtEx(EX.back.slice(5,6))[0], fmtEx(EX.back.slice(0,2))[0],
-        fmtEx(EX.arms.slice(0,2))[0], fmtEx(EX.forearms.slice(0,2))[0],
-        fmtEx(EX.forearms.slice(1,2))[0],
-        ...(fat?[{n:t('ex_rowing'),s:'1',r:'15min',rest:'-'}]:[]),
-      ]},
-      { name:t('day3_shoulder_abs'), ex:[
-        ...fmtEx(EX.shoulders.slice(0,4)), fmtEx(EX.abs.slice(0,2)),
-        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
-      ]},
-      { name:t('day4_legs'), ex:[
-        ...fmtEx(EX.legs.slice(0,4)), fmtEx(EX.abs.slice(2,3)),
-      ]},
-    ],
-    note:bmi<25?t('plan4_note_bulk'):t('plan4_note_cut'),
-  };
-}
-
-function plan5(bmi) {
-  const fat = bmi >= 25;
-  return {
-    name:t('plan5_name'), sched:t('plan5_sched'),
-    days: [
-      { name:t('day1_chest'), ex:[
-        ...fmtEx(EX.chest.slice(0,5)), fmtEx(EX.abs.slice(0,1)),
-        ...(fat?[{n:t('ex_treadmill_walk'),s:'1',r:'15min',rest:'-'}]:[]),
-      ]},
-      { name:t('day2_back'), ex:[
-        fmtEx(EX.back.slice(5,6))[0], ...fmtEx(EX.back.slice(0,3)),
-        fmtEx(EX.abs.slice(1,2))[0],
-        ...(fat?[{n:t('ex_rowing'),s:'1',r:'15min',rest:'-'}]:[]),
-      ]},
-      { name:t('day3_shoulders'), ex:[
-        ...fmtEx(EX.shoulders.slice(0,5)), fmtEx(EX.abs.slice(2,3))[0],
-        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
-      ]},
-      { name:t('day4_arms'), ex:[
-        ...fmtEx(EX.arms.slice(0,3)), fmtEx(EX.arms.slice(3,6)),
-        fmtEx(EX.forearms.slice(0,2))[0], fmtEx(EX.forearms.slice(2,3))[0],
-      ]},
-      { name:t('day5_legs'), ex:[
-        ...fmtEx(EX.legs.slice(0,5)), fmtEx(EX.abs.slice(0,1))[0],
-        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
-      ]},
-    ],
-    note:bmi<25?t('plan5_note_bulk'):t('plan5_note_cut'),
-  };
-}
-
-function planCbum(bmi) {
-  const fat = bmi >= 25;
-  return {
-    name:t('planCbum_name'),
-    sched:t('planCbum_sched'),
-    days: [
-      { name:t('day1_chest_tri'), ex:[
-        {n:t('ex_incline_db'),s:'4',r:'8-12',rest:'60s'},
-        {n:t('ex_bench'),s:'4',r:'8-12',rest:'90s'},
-        {n:t('ex_cable_fly'),s:'4',r:'12',rest:'60s'},
-        {n:t('ex_dips'),s:'4',r:'12',rest:'60s'},
-        {n:t('ex_machine_press'),s:'4',r:'12',rest:'60s'},
-        {n:t('ex_pushdown_tri'),s:'4',r:'12',rest:'45s'},
-        ...(fat?[{n:t('ex_treadmill_walk'),s:'1',r:'15min',rest:'-'}]:[]),
-      ]},
-      { name:t('day2_back_rear'), ex:[
-        {n:t('ex_row'),s:'4',r:'8-12',rest:'90s'},
-        {n:t('ex_pullup'),s:'4',r:'8-12',rest:'90s'},
-        {n:t('ex_lat_pulldown'),s:'4',r:'10-12',rest:'60s'},
-        {n:t('ex_db_row'),s:'4',r:'10-12',rest:'60s'},
-        {n:t('ex_cable_row'),s:'4',r:'12',rest:'45s'},
-        {n:t('ex_reverse_fly_rear'),s:'4',r:'12',rest:'45s'},
-        ...(fat?[{n:t('ex_rowing'),s:'1',r:'15min',rest:'-'}]:[]),
-      ]},
-      { name:t('day3_shoulder_abs'), ex:[
-        {n:t('ex_ohp'),s:'4',r:'8-12',rest:'90s'},
-        {n:t('ex_lateral'),s:'4',r:'12',rest:'45s'},
-        {n:t('ex_front_raise'),s:'4',r:'12',rest:'45s'},
-        {n:t('ex_facepull'),s:'4',r:'15',rest:'45s'},
-        {n:t('ex_hanging_leg'),s:'4',r:'12',rest:'45s'},
-        {n:t('ex_crunch'),s:'4',r:'12',rest:'30s'},
-        ...(fat?[{n:t('ex_battle_rope'),s:'4',r:'30s',rest:'30s'}]:[]),
-      ]},
-      { name:t('day4_legs_cbum'), ex:[
-        {n:t('ex_squat'),s:'4',r:'8-12',rest:'120s'},
-        {n:'腿举(倒蹬)',s:'4',r:'10-12',rest:'90s'},
-        {n:t('ex_legext'),s:'4',r:'12',rest:'60s'},
-        {n:t('ex_bulgarian'),s:'4',r:'10-12',rest:'60s'},
-        {n:t('ex_rdl'),s:'4',r:'10-12',rest:'90s'},
-        {n:t('ex_calf_raise'),s:'4',r:'12',rest:'45s'},
-      ]},
-      { name:t('day4_arms'), ex:[
-        {n:t('ex_curl'),s:'4',r:'10-12',rest:'60s'},
-        {n:t('ex_preacher'),s:'4',r:'10-12',rest:'60s'},
-        {n:t('ex_pushdown'),s:'4',r:'12',rest:'45s'},
-        {n:t('ex_closegrip'),s:'4',r:'8-12',rest:'60s'},
-        {n:t('ex_overhead_ext'),s:'4',r:'12',rest:'45s'},
-        {n:t('ex_wrist_curl'),s:'4',r:'12',rest:'45s'},
-      ]},
-    ],
-    note:t('planCbum_note'),
-  };
-}
-
-// ═══════════════════════════ 体型 ═══════════════════════════
-const SOMAS = [
-  { id:'ecto', icon:'🧍', name:t('soma_ecto_name'), desc:t('soma_ecto_desc'), bmi:t('bmi_tag')+' < 18.5' },
-  { id:'meso', icon:'🗿', name:t('soma_meso_name'), desc:t('soma_meso_desc'), bmi:t('bmi_tag')+' 18.5–24.9' },
-  { id:'endo', icon:'🦍', name:t('soma_endo_name'), desc:t('soma_endo_desc'), bmi:t('bmi_tag')+' ≥ 25' },
-];
-
-// ═══════════════════════════ 状态 ═══════════════════════════
-let S = { gender:'male', step:0, bmi:null, soma:null, plan:null };
-
-function recSoma(bmi){ return bmi<18.5?'ecto':bmi<25?'meso':'endo'; }
-
-function upSteps(){
-  ['s0','s1','s2','s3'].forEach((id,i)=>{
-    const e=document.getElementById(id);
-    e.classList.remove('active','done');
-    if(i===S.step) e.classList.add('active');
-    else if(i<S.step) e.classList.add('done');
-  });
-}
-
-function pickGender(g){
-  S.gender=g;
-  document.getElementById('cardMale').classList.toggle('selected',g==='male');
-  document.getElementById('cardFemale').classList.toggle('selected',g==='female');
-  document.body.classList.toggle('female',g==='female');
-  document.getElementById('megaIcon').textContent = g==='female' ? '🦄' : '💀';
-}
-
-document.addEventListener('DOMContentLoaded',()=> pickGender('male'));
-
-// ═══════════════════════════ localStorage ═══════════════════════════
-const STORAGE_KEY = 'hell_forge_checks';
-function loadChecks(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}catch{return{};} }
-function saveChecks(c){ localStorage.setItem(STORAGE_KEY,JSON.stringify(c)); }
-function ckKey(pn,di,ei){ return `${pn}__${di}__${ei}`; }
-function toggleCheck(pn,di,ei){
-  const c=loadChecks(); const k=ckKey(pn,di,ei); c[k]=!c[k]; saveChecks(c);
-  renderDetail(S.plan);
-}
-function resetChecks(){ localStorage.removeItem(STORAGE_KEY); if(S.plan) renderDetail(S.plan); }
-
-// ═══════════════════════════ BMI ═══════════════════════════
-function calcBMI(){
-  const h=parseFloat(document.getElementById('height').value)/100;
-  const w=parseFloat(document.getElementById('weight').value);
-  if(!h||!w||h<=0||w<=0) return alert(t('alert_invalid'));
-  S.bmi=w/(h*h);
-  let lb,cl;
-  if(S.bmi<18.5){lb=t('bmi_under');cl='#ff4400';}
-  else if(S.bmi<25){lb=t('bmi_normal');cl='#ff0000';}
-  else if(S.bmi<30){lb=t('bmi_over');cl='#cc0000';}
-  else {lb=t('bmi_obese');cl='#990000';}
-  document.getElementById('bmiResult').classList.remove('hidden');
-  document.getElementById('bmiResult').innerHTML=`<div class="bmi-num" style="color:${cl}">${S.bmi.toFixed(1)}</div><div class="bmi-tag">${lb}</div>`;
-  document.getElementById('toSoma').classList.remove('hidden');
-}
-
-// ═══════════════════════════ 步骤切换 ═══════════════════════════
-function showPanel(id){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
-  const el = document.getElementById(id);
-  el.classList.remove('hidden');
-  el.classList.add('animate-in');
-  el.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function step0(){ S.step=0; S.bmi=null; S.soma=null; S.plan=null; upSteps(); showPanel('genderPanel'); }
-function step1(){ S.step=1; S.soma=null; S.plan=null; upSteps(); showPanel('bmiPanel'); }
-function step2(){
-  S.step=2; S.plan=null; upSteps();
-  if(!S.soma&&S.bmi) S.soma=recSoma(S.bmi);
-  showPanel('somaPanel'); renderSomas();
-}
-function step3(){
-  if(!S.soma) return alert(t('alert_select_soma'));
-  S.step=3; upSteps(); showPanel('planPanel'); renderPlans();
-}
-
-// ═══════════════════════════ 渲染 ═══════════════════════════
-function renderSomas(){
-  const rec=S.bmi?recSoma(S.bmi):null;
-  document.getElementById('somaGrid').innerHTML=SOMAS.map(s=>`
-    <div class="soma-card${S.soma===s.id?' selected':''}" onclick="S.soma='${s.id}';renderSomas();">
-      <div class="soma-icon">${s.icon}</div>
-      <div class="soma-name">${s.name}</div>
-      <div class="soma-desc">${s.desc}</div>
-      <div class="soma-tag">BMI ${s.bmi}</div>
-      ${rec===s.id?`<div class="soma-rec">`+t('bmi_rec')+`</div>`:''}
-    </div>
-  `).join('');
-}
-
-function renderPlans(){
-  const bmi=S.bmi||22;
-  const soma=SOMAS.find(s=>s.id===S.soma);
-  document.getElementById('planTitle').innerHTML=`${soma.icon} ${soma.name} · `+t('plan_title');
-
-  const plans=[plan3(bmi),plan4(bmi),plan5(bmi),planCbum(bmi)];
-  window._plans = plans;
-  document.getElementById('planGrid').innerHTML=plans.map((p,i)=>`
-    <div class="plan-card${S.plan&&S.plan.name===p.name?' active':''}" onclick="S.plan=window._plans[${i}];renderPlans();">
-      <div class="plan-name">${p.name}</div>
-      <div class="plan-sched">${p.sched}</div>
-      <div class="plan-note">${p.note}</div>
-    </div>
-  `).join('');
-
-  if(S.plan) renderDetail(S.plan);
-  else document.getElementById('workoutSection').innerHTML=`<div style="text-align:center;padding:40px;color:#887777;font-size:1.2em">${t('plan_select')}</div>`;
-}
-
-function renderDetail(plan){
-  const checks=loadChecks(), container=document.getElementById('workoutSection');
-  let total=0, done=0;
-  plan.days.forEach((day,di)=>{
-    day.ex.forEach((_,ei)=>{ total++;
-      if(checks[ckKey(plan.name,di,ei)]) done++;
-    });
-  });
-
-  let html=`<div class="progress-bar"><div class="progress-fill" style="width:${total?done/total*100:0}%"></div></div>
-    <div class="progress-txt">${t('progress')} ${done}/${total} ${t('of')} ${total?Math.round(done/total*100):0}%</div>
-    <button class="btn" style="margin-top:8px;font-size:0.85em;padding:8px 16px" onclick="resetChecks()">${t('btn_reset')}</button>`;
-
-  plan.days.forEach((day,di)=>{
-    html+=`<div class="day-title">${day.name}</div><table class="workout-table">
-      <tr><th>✓</th><th>${t('th_exercise')}</th><th>${t('th_sets')}</th><th>${t('th_reps')}</th><th>${t('th_rest')}</th></tr>`;
-    day.ex.forEach((ex,ei)=>{
-      const key=ckKey(plan.name,di,ei), chk=checks[key];
-      html+=`<tr class="${chk?'checked':''}">
-        <td class="check-cell${chk?' checked':''}" onclick="toggleCheck('${plan.name}',${di},${ei})">${chk?'☠️':'◯'}</td>
-        <td>${ex.n}</td><td>${ex.s}</td><td>${ex.r}</td><td>${ex.rest}</td></tr>`;
-    });
-    html+='</table>';
-  });
-  container.innerHTML=html;
-}
-
-renderSomas();
-
-// ═══════════════════════════ 音乐自动播放（健壮版） ═══════════════════════════
-const musicAudio = document.getElementById('musicAudio');
-const musicBtn = document.getElementById('musicBtn');
-let musicOn = false, musicFailed = false, musicTimer = null;
-
-function killMusicTimer() { if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; } }
-
-function startMusic() {
-  if (musicOn || musicFailed) return;
-  musicAudio.volume = 0.6;
-  // 5秒超时：手机网络慢时不给无限缓冲时间
-  musicTimer = setTimeout(() => {
-    if (!musicOn) {
-      musicFailed = true;
-      musicBtn.classList.add('music-dead');
-      musicBtn.textContent = '🔇';
-      musicBtn.title = '音乐加载超时，点击重试';
-      musicAudio.pause();
-    }
-  }, 5000);
-  musicAudio.play().then(() => {
-    killMusicTimer();
-    musicOn = true;
-    musicBtn.classList.add('playing');
-    musicBtn.classList.remove('music-dead');
-    musicBtn.textContent = '🎵';
-  }).catch(() => {
-    killMusicTimer();
-    musicFailed = true;
-    musicBtn.classList.add('music-dead');
-    musicBtn.textContent = '🔇';
-    musicBtn.title = '音乐无法播放，点击重试';
-  });
-}
-
-// 音乐加载失败时静默降级
-musicAudio.addEventListener('error', () => {
-  killMusicTimer();
-  if (!musicOn) {
-    musicFailed = true;
-    musicBtn.classList.add('music-dead');
-    musicBtn.textContent = '🔇';
-    musicBtn.title = '音乐加载失败，点击重试';
-  }
-});
-
-// 页面加载立即尝试播放
-window.addEventListener('DOMContentLoaded', startMusic);
-
-// 首次用户交互时兜底播放（移动端必需）
-['click','touchstart'].forEach(evt => {
-  document.addEventListener(evt, startMusic, { once: false });
-});
-
-function toggleMusic() {
-  if (musicOn) {
-    musicAudio.pause();
-    musicOn = false;
-    musicBtn.classList.remove('playing');
-  } else {
-    musicFailed = false;
-    musicBtn.classList.remove('music-dead');
-    musicBtn.textContent = '🎵';
-    startMusic();
-  }
-}
-// ═══════════════════════════ 指引弹窗 ═══════════════════════════
-function showGuide() {
-  document.getElementById('guideOverlay').classList.remove('hidden-guide');
-}
-function hideGuide() {
-  document.getElementById('guideOverlay').classList.add('hidden-guide');
-  try { localStorage.setItem('hell_forge_seen_guide', '1'); } catch(e) {}
-}
-// 首次访问自动弹出指引
-(function(){
-  try {
-    if (!localStorage.getItem('hell_forge_seen_guide')) {
-      setTimeout(showGuide, 600);
-    }
-  } catch(e) {}
-})();
-
-// ═══════════════════════════ 离线检测 ═══════════════════════════
-(function(){
-  const banner = document.getElementById('offlineBanner');
-  function updateOnline() {
-    banner.textContent = t('offline_banner');
-    if (navigator.onLine) {
-      banner.classList.remove('show');
-    } else {
-      banner.classList.add('show');
-    }
-  }
-  updateOnline();
-  window.addEventListener('online', updateOnline);
-  window.addEventListener('offline', updateOnline);
-})();
-
-// ═══════════════════════════ 语言初始化 ═══════════════════════════
-(function initLang(){
-  // 高亮当前语言按钮
-  const activeBtn = document.getElementById('lang-' + currentLang);
-  if (activeBtn) activeBtn.classList.add('lang-active');
-  
-  // 填充所有 data-i18n 元素
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (key) el.textContent = t(key);
-  });
-  document.querySelectorAll('[data-i18n-title]').forEach(el => {
-    const key = el.getAttribute('data-i18n-title');
-    if (key) el.title = t(key);
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.getAttribute('data-i18n-placeholder');
-    if (key) el.placeholder = t(key);
-  });
-  
-  // 更新标题
-  document.title = t('title') + ' · ' + t('subtitle');
-})();
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
-</script>
-</body>
-</html>
+     1|<!DOCTYPE html>
+     2|<html lang="zh-CN">
+     3|<head>
+     4|<meta charset="UTF-8">
+     5|<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+     6|<meta name="theme-color" content="#ff4500">
+     7|<meta name="apple-mobile-web-app-capable" content="yes">
+     8|<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+     9|<meta name="apple-mobile-web-app-title" content="地狱锻炉">
+    10|<link rel="manifest" href="manifest.json">
+    11|<link rel="apple-touch-icon" href="icon-192.png">
+    12|<title>地狱锻炉 · HELL FORGE</title>
+    13|<style>
+    14|/* ═══════ 极简暗黑主题 ═══════ */
+    15|:root {
+    16|  --bg:#0a0000; --text:#ccc; --panel-bg:rgba(15,2,2,0.97);
+    17|  --border:#440000; --accent:#cc3300; --accent2:#ff0000;
+    18|  --btn-bg1:#440000; --btn-bg2:#220000;
+    19|  --input-bg:#080000; --card-bg:rgba(30,5,5,0.9);
+    20|  --hover-glow:rgba(255,0,0,0.4);
+    21|}
+    22|body.female {
+    23|  --bg:#2a1020; --text:#fff; --panel-bg:rgba(40,15,30,0.95);
+    24|  --border:#ff69b4; --accent:#ff85c0; --accent2:#ffb6d9;
+    25|  --btn-bg1:#cc3388; --btn-bg2:#991166;
+    26|  --input-bg:#1a0815; --card-bg:rgba(50,20,35,0.9);
+    27|  --hover-glow:rgba(255,105,180,0.4);
+    28|}
+    29|* { margin:0; padding:0; box-sizing:border-box; }
+    30|body {
+    31|  background: var(--bg);
+    32|  /* 替代Canvas火焰 — 纯CSS渐变 */
+    33|  background-image:
+    34|    radial-gradient(ellipse at 50% 100%, rgba(200,10,0,0.12) 0%, transparent 60%),
+    35|    radial-gradient(ellipse at 20% 80%, rgba(180,0,0,0.06) 0%, transparent 50%),
+    36|    radial-gradient(ellipse at 80% 70%, rgba(150,0,0,0.05) 0%, transparent 50%);
+    37|  color: var(--text);
+    38|  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+    39|  min-height: 100vh; overflow-x: hidden;
+    40|}
+    41|body.female {
+    42|  background-image:
+    43|    radial-gradient(ellipse at 50% 100%, rgba(255,105,180,0.1) 0%, transparent 60%),
+    44|    radial-gradient(ellipse at 30% 80%, rgba(255,150,200,0.05) 0%, transparent 50%);
+    45|}
+    46|
+    47|/* ── 主容器 ── */
+    48|.app { position:relative; z-index:1; max-width:800px; margin:0 auto; padding:16px 10px; }
+    49|
+    50|/* ── 头部装饰 ── */
+    51|.mega-icon {
+    52|  text-align:center; font-size: clamp(50px, 10vw, 80px);
+    53|  margin: 10px 0; opacity: 0.85;
+    54|}
+    55|.header { text-align:center; padding:10px 10px 5px; }
+    56|.header h1 {
+    57|  font-family: Georgia,'Times New Roman',serif;
+    58|  font-size: clamp(32px, 6vw, 48px);
+    59|  color: var(--accent);
+    60|  text-shadow: 0 0 30px var(--accent2);
+    61|  letter-spacing: 6px;
+    62|  animation: pulse 3s infinite alternate;
+    63|}
+    64|.header .sub {
+    65|  font-size: 1.2em; color: var(--accent);
+    66|  margin-top: 4px; letter-spacing: 8px;
+    67|}
+    68|@keyframes pulse {
+    69|  0% { text-shadow: 0 0 30px var(--accent2); }
+    70|  100% { text-shadow: 0 0 15px var(--accent2); }
+    71|}
+    72|
+    73|/* ── 步骤指示器 ── */
+    74|.steps {
+    75|  display:flex; justify-content:center; gap: 40px; margin:10px 0 20px; position:relative;
+    76|}
+    77|.steps::before {
+    78|  content:''; position:absolute; top:20px; left:18%; right:18%; height:2px;
+    79|  background: var(--border);
+    80|}
+    81|.sw { text-align:center; position:relative; z-index:1; }
+    82|.sn {
+    83|  width:40px; height:40px; border-radius:50%;
+    84|  background:#0a0000; border:2px solid var(--border);
+    85|  display:flex; align-items:center; justify-content:center;
+    86|  font-weight:bold; color:#550000; font-size:0.9em;
+    87|  margin:0 auto 4px; transition:all 0.3s;
+    88|}
+    89|.sn.active { background:var(--btn-bg1); border-color:var(--accent2); color:var(--accent); box-shadow:0 0 20px var(--hover-glow); }
+    90|.sn.done { background:#220000; border-color:#880000; color:var(--accent); }
+    91|.sl { font-size:0.75em; color:#660000; text-transform:uppercase; letter-spacing:2px; }
+    92|
+    93|body.female .sn { border-color:#cc3388; background:#1a0815; color:#ff85c0; }
+    94|body.female .sn.active { background:#cc3388; border-color:#ff69b4; color:#fff; }
+    95|body.female .sn.done { background:#661155; border-color:#ff69b4; color:#ffb6d9; }
+    96|body.female .sl { color:#ff85c0; }
+    97|
+    98|/* ── 面板 ── */
+    99|.panel {
+   100|  background: var(--panel-bg);
+   101|  border:1px solid var(--border);
+   102|  border-radius:6px; padding:24px 14px; margin:16px 0;
+   103|  box-shadow: 0 0 30px rgba(255,0,0,0.04);
+   104|  transition:all 0.3s;
+   105|}
+   106|.panel::before {
+   107|  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+   108|  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+   109|}
+   110|.panel h2 {
+   111|  font-size: 1.5em; color: var(--accent); margin-bottom:18px; text-align:center;
+   112|  text-shadow: 0 0 15px var(--accent); letter-spacing:4px; text-transform:uppercase;
+   113|}
+   114|
+   115|body.female .panel { box-shadow:0 0 25px rgba(255,105,180,0.1); border-color:#ff69b4; }
+   116|body.female .panel::before { background:linear-gradient(90deg,transparent,#ff69b4,transparent); }
+   117|
+   118|/* ── 性别选择 ── */
+   119|.gender-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:600px; margin:0 auto; }
+   120|.gender-card {
+   121|  background:var(--card-bg); border:2px solid var(--border);
+   122|  padding:30px 14px; text-align:center; cursor:pointer;
+   123|  transition:all 0.3s; font-size:1.1em;
+   124|}
+   125|.gender-card:hover { border-color:var(--accent2); box-shadow:0 0 25px var(--hover-glow); transform:translateY(-3px); }
+   126|.gender-card.selected { border-color:var(--accent2); box-shadow:0 0 40px var(--hover-glow); background:rgba(40,10,5,0.9); }
+   127|.gender-icon { font-size:3em; margin-bottom:10px; }
+   128|.gender-name { font-family:Georgia,serif; font-size:1.6em; color:var(--accent); letter-spacing:3px; }
+   129|
+   130|/* ── 输入 ── */
+   131|.form-row { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; align-items:end; }
+   132|.field { display:flex; flex-direction:column; gap:4px; }
+   133|.field label { font-size:0.85em; color:var(--accent); text-transform:uppercase; letter-spacing:3px; }
+   134|.field input {
+   135|  background:var(--input-bg); border:2px solid var(--border); color:var(--accent2);
+   136|  padding:12px 16px; border-radius:5px; font-size:1.3em; width:140px;
+   137|  text-align:center; font-family:inherit;
+   138|}
+   139|.field input:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 20px var(--hover-glow); }
+   140|
+   141|/* ── 按钮 ── */
+   142|.btn {
+   143|  background: linear-gradient(180deg, var(--btn-bg1), var(--btn-bg2));
+   144|  border:1px solid var(--accent); color: var(--accent2);
+   145|  padding:14px 28px; border-radius:5px; font-size:1.1em;
+   146|  cursor:pointer; letter-spacing:3px; transition:all 0.3s; text-transform:uppercase;
+   147|}
+   148|.btn:hover { border-color:var(--accent2); color:#fff; box-shadow:0 0 25px var(--hover-glow); }
+   149|.btn--fire {
+   150|  background: linear-gradient(180deg, var(--accent), var(--btn-bg1));
+   151|  border-color: var(--accent2);
+   152|  animation: btnBurn 2.5s infinite;
+   153|}
+   154|@keyframes btnBurn {
+   155|  0%,100% { box-shadow: 0 0 10px var(--hover-glow); }
+   156|  50% { box-shadow: 0 0 30px var(--hover-glow); }
+   157|}
+   158|
+   159|/* ── BMI ── */
+   160|.bmi-box { text-align:center; font-size:1.3em; margin-top:20px; padding:16px; border-radius:6px; background:rgba(10,0,0,0.4); border:1px solid var(--border); }
+   161|.bmi-num { font-size:2.5em; color:var(--accent2); font-weight:bold; }
+   162|.bmi-tag { color:var(--accent); margin-top:4px; letter-spacing:2px; font-size:0.85em; }
+   163|
+   164|/* ── 体型卡片 ── */
+   165|.soma-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin:16px 0; }
+   166|.soma-card {
+   167|  background:var(--card-bg); border:2px solid var(--border);
+   168|  padding:22px; text-align:center; cursor:pointer; transition:all 0.3s;
+   169|}
+   170|.soma-card:hover { border-color:var(--accent2); box-shadow:0 0 25px var(--hover-glow); }
+   171|.soma-card.selected { border-color:var(--accent2); box-shadow:0 0 35px var(--hover-glow); background:rgba(40,10,5,0.9); }
+   172|.soma-icon { font-size:2.8em; margin-bottom:8px; }
+   173|.soma-name { font-family:Georgia,serif; font-size:1.3em; color:var(--accent); margin-bottom:8px; letter-spacing:2px; }
+   174|.soma-desc { font-size:0.9em; color:#887777; line-height:1.6; }
+   175|.soma-tag { display:inline-block; margin-top:8px; padding:3px 12px; background:#220000; font-size:0.8em; color:#cc6600; border:1px solid var(--border); }
+   176|.soma-rec { display:inline-block; margin-top:4px; padding:3px 12px; background:#330000; font-size:0.8em; color:var(--accent2); border:1px solid var(--accent); }
+   177|
+   178|/* ── 计划卡片 ── */
+   179|.plan-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:16px 0; }
+   180|.plan-card {
+   181|  background:rgba(20,5,5,0.8); border:2px solid var(--border);
+   182|  padding:20px; cursor:pointer; transition:all 0.3s;
+   183|}
+   184|.plan-card:hover { border-color:var(--accent2); box-shadow:0 0 25px var(--hover-glow); }
+   185|.plan-card.active { border-color:var(--accent2); border-width:3px; background:rgba(40,10,5,0.9); box-shadow:0 0 35px var(--hover-glow); }
+   186|.plan-name { font-family:Georgia,serif; font-size:1.3em; color:var(--accent); margin-bottom:4px; letter-spacing:2px; }
+   187|.plan-sched { font-size:0.9em; color:#996666; }
+   188|.plan-note { margin-top:8px; font-size:0.85em; color:var(--accent); font-style:italic; }
+   189|
+   190|/* ── 训练表格 ── */
+   191|.workout-section { margin-top:20px; }
+   192|.day-title {
+   193|  font-family:Georgia,serif; font-size:1.3em; color:var(--accent2);
+   194|  text-align:center; padding:14px; background:rgba(50,10,0,0.25);
+   195|  border:1px solid var(--border); margin-top:14px; letter-spacing:3px;
+   196|}
+   197|.workout-table { width:100%; border-collapse:collapse; font-size:0.95em; }
+   198|.workout-table th {
+   199|  background:linear-gradient(180deg, #330000, #1a0000);
+   200|  color:var(--accent); padding:10px; text-align:left;
+   201|  font-size:0.85em; letter-spacing:2px;
+   202|  border-bottom:1px solid var(--border); text-transform:uppercase;
+   203|}
+   204|.workout-table td { padding:10px; border-bottom:1px solid #220000; }
+   205|.workout-table tr:hover td { background:rgba(50,10,0,0.12); }
+   206|.workout-table tr.checked td { opacity:0.35; text-decoration:line-through; }
+   207|.workout-table tr.checked td:first-child { opacity:0.7; text-decoration:none; }
+   208|.check-cell { text-align:center; cursor:pointer; font-size:1.3em; user-select:none; width:44px; }
+   209|.check-cell.checked { color:var(--accent2); text-shadow:0 0 10px var(--accent2); }
+   210|
+   211|.progress-bar { height:6px; background:#1a0000; margin:14px 0 4px; border:1px solid var(--border); }
+   212|.progress-fill {
+   213|  height:100%; background:linear-gradient(90deg, var(--btn-bg1), var(--accent), var(--accent2));
+   214|  transition:width 0.5s; box-shadow:0 0 10px var(--hover-glow);
+   215|}
+   216|.progress-txt { font-size:0.85em; color:#996666; text-align:right; letter-spacing:2px; }
+   217|
+   218|/* ── 通用 ── */
+   219|.hidden { display:none !important; }
+   220|.nav-row { display:flex; justify-content:center; gap:16px; margin-top:20px; flex-wrap:wrap; }
+   221|.divider { text-align:center; font-size:1.5em; margin:25px 0 10px; color:var(--accent); letter-spacing:15px; }
+   222|
+   223|@keyframes fadeInUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+   224|.animate-in { animation:fadeInUp 0.4s ease-out; }
+   225|
+   226|/* ── 音乐播放器 ── */
+   227|.music-player { position:fixed; bottom:16px; right:16px; z-index:999; }
+   228|.music-toggle {
+   229|  width:48px; height:48px; border-radius:50%;
+   230|  background:linear-gradient(180deg,var(--btn-bg1),var(--btn-bg2));
+   231|  border:1px solid var(--accent); color:var(--accent2);
+   232|  font-size:1.3em; cursor:pointer; transition:all 0.3s;
+   233|  box-shadow:0 0 15px var(--hover-glow);
+   234|  display:flex; align-items:center; justify-content:center;
+   235|}
+   236|.music-toggle.playing {
+   237|  animation:btnBurn 2.5s infinite;
+   238|  background:linear-gradient(180deg,var(--accent),var(--btn-bg1));
+   239|}
+   240|.music-toggle.music-dead {
+   241|  opacity:0.4; animation:none;
+   242|  background:linear-gradient(180deg,var(--btn-bg2),#110000);
+   243|  border-color:#330000; color:#550000;
+   244|}
+   245|
+   246|/* ── 离线横幅 ── */
+   247|.offline-banner {
+   248|  position:fixed; top:0; left:0; right:0; z-index:2000;
+   249|  background:linear-gradient(180deg, #990000, #440000);
+   250|  color:#fff; text-align:center; padding:8px;
+   251|  font-size:0.85em; letter-spacing:2px;
+   252|  transform:translateY(-100%); transition:transform 0.4s;
+   253|  box-shadow:0 0 30px rgba(255,0,0,0.5);
+   254|}
+   255|.offline-banner.show { transform:translateY(0); }
+   256|
+   257|/* ── 帮助按钮 ── */
+   258|.help-btn {
+   259|  position:fixed; top:8px; left:8px; z-index:1000;
+   260|  width:32px; height:32px; border-radius:50%;
+   261|  background:rgba(15,2,2,0.85); border:1px solid var(--border);
+   262|  color:var(--accent); font-size:1em; font-weight:bold;
+   263|  cursor:pointer; display:flex; align-items:center; justify-content:center;
+   264|  transition:all 0.3s;
+   265|}
+   266|.help-btn:hover { border-color:var(--accent2); box-shadow:0 0 15px var(--hover-glow); }
+   267|body.female .help-btn { background:rgba(40,15,30,0.85); border-color:#cc3388; color:#ff85c0; }
+   268|
+   269|/* ── 语言切换器 ── */
+   270|.lang-switcher {
+   271|  position:fixed; top:8px; right:52px; z-index:1000;
+   272|  display:flex; gap:4px;
+   273|}
+   274|.lang-btn {
+   275|  padding:4px 8px; border-radius:3px; font-size:0.7em;
+   276|  background:rgba(15,2,2,0.85); border:1px solid var(--border);
+   277|  color:#665555; cursor:pointer;
+   278|  transition:all 0.3s; letter-spacing:1px;
+   279|}
+   280|.lang-btn:hover { border-color:var(--accent); color:var(--accent); }
+   281|.lang-btn.lang-active { border-color:var(--accent2); color:var(--accent2); background:rgba(60,15,5,0.9); box-shadow:0 0 10px var(--hover-glow); }
+   282|body.female .lang-btn { background:rgba(40,15,30,0.85); border-color:#cc3388; color:#cc88aa; }
+   283|body.female .lang-btn.lang-active { border-color:#ff69b4; color:#ffb6d9; }
+   284|
+   285|/* ── 指引弹窗 ── */
+   286|.guide-overlay {
+   287|  position:fixed; inset:0; z-index:3000;
+   288|  background:rgba(0,0,0,0.85);
+   289|  display:flex; align-items:center; justify-content:center;
+   290|  opacity:1; transition:opacity 0.3s;
+   291|}
+   292|.guide-overlay.hidden-guide { opacity:0; pointer-events:none; }
+   293|.guide-modal {
+   294|  background:var(--panel-bg); border:2px solid var(--accent);
+   295|  border-radius:10px; padding:30px 24px; max-width:380px; width:90%;
+   296|  box-shadow:0 0 60px var(--hover-glow);
+   297|  animation:fadeInUp 0.4s ease-out;
+   298|}
+   299|.guide-modal h3 {
+   300|  text-align:center; font-size:1.4em; color:var(--accent);
+   301|  margin-bottom:18px; letter-spacing:3px;
+   302|}
+   303|.guide-modal .guide-step {
+   304|  padding:8px 0; font-size:0.95em; color:var(--text);
+   305|  border-bottom:1px solid rgba(255,0,0,0.08); line-height:1.6;
+   306|}
+   307|.guide-modal .guide-step:last-of-type { border-bottom:none; }
+   308|.guide-modal .btn { display:block; margin:20px auto 0; }
+   309|
+   310|body.female .guide-modal { border-color:#ff69b4; box-shadow:0 0 50px rgba(255,105,180,0.4); }
+   311|
+   312|/* ── 手机适配 ── */
+   313|@media(max-width:500px) {
+   314|  .app { padding:8px 4px; }
+   315|  .gender-grid { grid-template-columns:1fr; }
+   316|  .panel { padding:18px 10px; margin:10px 0; }
+   317|  .field input { width:120px; font-size:1.2em; }
+   318|  .soma-grid,.plan-grid { grid-template-columns:1fr; }
+   319|  .panel h2 { font-size:1.3em; }
+   320|  .btn { padding:12px 20px; font-size:1em; }
+   321|  .steps { gap:28px; }
+   322|  .sn { width:34px; height:34px; font-size:0.8em; }
+   323|  .sl { font-size:0.65em; }
+   324|  .header h1 { font-size:clamp(26px,7vw,36px); }
+   325|}
+   326|</style>
+   327|</head>
+   328|<body>
+   329|
+   330|<!-- 离线横幅 -->
+   331|<div class="offline-banner" id="offlineBanner">⚠️ 网络连接中断 — 离线模式</div>
+   332|
+   333|<!-- 帮助按钮 -->
+   334|<button class="help-btn" id="helpBtn" onclick="showGuide()" title="使用指引">?</button>
+   335|
+   336|<!-- 语言切换器 -->
+   337|<div class="lang-switcher">
+   338|  <button class="lang-btn" id="lang-en" onclick="setLang('en')" title="English">🇬🇧 EN</button>
+   339|  <button class="lang-btn" id="lang-ru" onclick="setLang('ru')" title="Русский">🇷🇺 RU</button>
+   340|  <button class="lang-btn" id="lang-zh" onclick="setLang('zh')" title="中文">🇨🇳 中</button>
+   341|</div>
+   342|
+   343|<!-- 使用指引弹窗 -->
+   344|<div class="guide-overlay hidden-guide" id="guideOverlay" onclick="if(event.target===this)hideGuide()">
+   345|  <div class="guide-modal">
+   346|    <h3 data-i18n="guide_title">💀 Hell Forge · Guide</h3>
+   347|    <div class="guide-step" data-i18n="guide_s1">🔥 Step 1: Choose your gender (male/female theme switch)</div>
+   348|    <div class="guide-step" data-i18n="guide_s2">⚔️ Step 2: Enter height & weight, calculate BMI</div>
+   349|    <div class="guide-step" data-i18n="guide_s3">🗡️ Step 3: Choose your body type (bloodline)</div>
+   350|    <div class="guide-step" data-i18n="guide_s4">☠️ Step 4: Pick a training plan, start forging!</div>
+   351|    <div class="guide-step" data-i18n="guide_s5">✓ Tap ○ next to exercises to check off</div>
+   352|    <div class="guide-step" data-i18n="guide_s6">🎵 Bottom-right button controls music</div>
+   353|    <div class="guide-step" data-i18n="guide_s7">📱 Add to phone home screen as an app</div>
+   354|    <button class="btn btn--fire" onclick="hideGuide()" data-i18n="guide_btn">☠️ Got it, forge!</button>
+   355|  </div>
+   356|</div>
+   357|
+   358|<div class="app">
+   359|  <!-- 装饰图标 -->
+   360|  <div class="mega-icon" id="megaIcon">💀</div>
+   361|
+   362|  <div class="header animate-in">
+   363|    <h1 data-i18n="title">HELL FORGE</h1>
+   364|    <div class="sub" data-i18n="subtitle">Hell's Forge</div>
+   365|  </div>
+   366|
+   367|  <!-- 步骤 -->
+   368|  <div class="steps animate-in">
+   369|    <div class="sw"><div class="sn active" id="s0">⚥</div><div class="sl" data-i18n="step0">Gender</div></div>
+   370|    <div class="sw"><div class="sn" id="s1">I</div><div class="sl" data-i18n="step1">Measurement</div></div>
+   371|    <div class="sw"><div class="sn" id="s2">II</div><div class="sl" data-i18n="step2">Bloodline</div></div>
+   372|    <div class="sw"><div class="sn" id="s3">III</div><div class="sl" data-i18n="step3">Trial</div></div>
+   373|  </div>
+   374|
+   375|  <!-- 步骤0: 性别 -->
+   376|  <div class="panel animate-in" id="genderPanel">
+   377|    <h2 data-i18n="gender_title">Choose Gender</h2>
+   378|    <div class="gender-grid">
+   379|      <div class="gender-card selected" id="cardMale" onclick="pickGender('male')">
+   380|        <div class="gender-icon">💀</div>
+   381|        <div class="gender-name" data-i18n="male">MALE</div>
+   382|        <div style="margin-top:6px;color:#cc6666;font-size:0.85em"><span data-i18n="male_desc">Hellfire · Skull Forge</span></div>
+   383|      </div>
+   384|      <div class="gender-card" id="cardFemale" onclick="pickGender('female')">
+   385|        <div class="gender-icon">🦄</div>
+   386|        <div class="gender-name" data-i18n="female">FEMALE</div>
+   387|        <div style="margin-top:6px;color:#ff99cc;font-size:0.85em"><span data-i18n="female_desc">My Little Pony · Pink Fitness</span></div>
+   388|      </div>
+   389|    </div>
+   390|    <div class="nav-row">
+   391|      <button class="btn btn--fire" onclick="step1()" data-i18n="btn_continue">☠️ Continue</button>
+   392|    </div>
+   393|  </div>
+   394|
+   395|  <!-- 步骤1: BMI -->
+   396|  <div class="panel hidden" id="bmiPanel">
+   397|    <h2 data-i18n="bmi_title">Step 1 · Measure Body</h2>
+   398|    <div class="form-row">
+   399|      <div class="field"><label data-i18n="height">Height CM</label><input type="number" id="height" placeholder="175" min="100" max="250"></div>
+   400|      <div class="field"><label data-i18n="weight">Weight KG</label><input type="number" id="weight" placeholder="70" min="30" max="300"></div>
+   401|      <button class="btn btn--fire" onclick="calcBMI()" data-i18n="btn_calc">☠️ Calculate</button>
+   402|    </div>
+   403|    <div class="bmi-box hidden" id="bmiResult"></div>
+   404|    <div class="nav-row">
+   405|      <button class="btn" onclick="step0()" data-i18n="btn_back_gender">◄ Re-select Gender</button>
+   406|      <button class="btn hidden" id="toSoma" onclick="step2()" data-i18n="btn_to_soma">➤ Choose Bloodline</button>
+   407|    </div>
+   408|  </div>
+   409|
+   410|  <!-- 步骤2: 体型 -->
+   411|  <div class="panel hidden" id="somaPanel">
+   412|    <h2 data-i18n="soma_title">Step 2 · Choose Bloodline</h2>
+   413|    <div class="soma-grid" id="somaGrid"></div>
+   414|    <div class="nav-row">
+   415|      <button class="btn" onclick="step1()" data-i18n="btn_back">◄ Back</button>
+   416|      <button class="btn btn--fire" onclick="step3()" data-i18n="btn_to_plan">☠️ Enter Trial</button>
+   417|    </div>
+   418|  </div>
+   419|
+   420|  <!-- 步骤3: 训练计划 -->
+   421|  <div class="panel hidden" id="planPanel">
+   422|    <h2 id="planTitle" data-i18n="plan_title">Trial Plans</h2>
+   423|    <div class="plan-grid" id="planGrid"></div>
+   424|    <div class="workout-section" id="workoutSection"></div>
+   425|    <div class="nav-row">
+   426|      <button class="btn" onclick="step0()" data-i18n="btn_back_gender">◄ Re-select Gender</button>
+   427|      <button class="btn" onclick="step2()" data-i18n="btn_resoma">◄ Re-select Bloodline</button>
+   428|    </div>
+   429|  </div>
+   430|
+   431|  <div class="divider">🔥 🔥 🔥</div>
+   432|</div>
+   433|
+   434|<!-- 音乐播放器 -->
+   435|<div class="music-player" id="musicPlayer">
+   436|  <button class="music-toggle" id="musicBtn" onclick="toggleMusic()" data-i18n-title="music_title" title="Music">🎵</button>
+   437|  <audio id="musicAudio" src="https://music.163.com/song/media/outer/url?id=2735919359.mp3" loop preload="metadata"></audio>
+   438|</div>
+   439|
+   440|<script src="i18n.js"></script>
+   441|<script>
+// ═══════════════════════════ 语言系统 ═══════════════════════════
+   443|
+   444|let currentLang='en';
+   445|try{const s=localStorage.getItem('hell_forge_lang');if(s&&I18N[s])currentLang=s;}catch(e){}
+   446|function t(key){return (I18N[currentLang]&&I18N[currentLang][key])||(I18N.en&&I18N.en[key])||key;}
+   447|function setLang(lang){if(!I18N[lang])return;try{localStorage.setItem('hell_forge_lang',lang);}catch(e){}location.reload();}
+   448|
+   449|// ═══════════════════════════ 数据库 ═══════════════════════════
+   450|const EX = {
+   451|  chest: [
+   452|    { n:t('ex_bench') },{ n:t('ex_incline_db') },{ n:t('ex_flyes') },
+   453|    { n:t('ex_cable_fly') },{ n:t('ex_dips') },{ n:t('ex_machine_press') },
+   454|  ],
+   455|  back: [
+   456|    { n:t('ex_row') },{ n:t('ex_pullup') },{ n:t('ex_lat_pulldown') },
+   457|    { n:t('ex_db_row') },{ n:t('ex_cable_row') },{ n:t('ex_deadlift') },
+   458|  ],
+   459|  shoulders: [
+   460|    { n:t('ex_ohp') },{ n:t('ex_lateral') },{ n:t('ex_front_raise') },
+   461|    { n:t('ex_facepull') },{ n:t('ex_reverse_fly') },{ n:t('ex_arnold') },
+   462|  ],
+   463|  arms: [
+   464|    { n:t('ex_curl') },{ n:t('ex_hammer') },{ n:t('ex_preacher') },
+   465|    { n:t('ex_pushdown') },{ n:t('ex_closegrip') },{ n:t('ex_overhead_ext') },
+   466|  ],
+   467|  forearms: [
+   468|    { n:t('ex_wrist_curl') },{ n:t('ex_rev_wrist') },{ n:t('ex_farmers') },
+   469|  ],
+   470|  legs: [
+   471|    { n:t('ex_squat') },{ n:t('ex_rdl') },{ n:t('ex_legpress') },
+   472|    { n:t('ex_legcurl') },{ n:t('ex_legext') },{ n:t('ex_bulgarian') },
+   473|  ],
+   474|  abs: [
+   475|    { n:t('ex_hanging_leg') },{ n:t('ex_crunch') },{ n:t('ex_russian_twist') },
+   476|  ],
+   477|  cardio: [
+   478|    { n:t('ex_sprint') },{ n:t('ex_battle_rope') },{ n:t('ex_rowing') },
+   479|  ],
+   480|};
+   481|
+   482|function fmtEx(arr) { return arr.map(e=>({...e, s:'4', r:'12', rest:'60s'})); }
+   483|
+   484|// ═══════════════════════════ 训练计划 ═══════════════════════════
+   485|function plan3(bmi) {
+   486|  const fat = bmi >= 25;
+   487|  return {
+   488|    name:t('plan3_name'), sched:t('plan3_sched'),
+   489|    days: [
+   490|      { name:t('day1_push'), ex:[
+   491|        ...fmtEx(EX.chest.slice(0,2)), fmtEx(EX.shoulders.slice(0,2)),
+   492|        fmtEx(EX.arms.slice(3,5)), fmtEx(EX.abs.slice(0,1)),
+   493|        ...(fat?[{n:t('ex_treadmill_walk'),s:'1',r:'15min',rest:'-'}]:[]),
+   494|      ]},
+   495|      { name:t('day2_pull'), ex:[
+   496|        fmtEx(EX.back.slice(5,6))[0], ...fmtEx(EX.back.slice(0,2)),
+   497|        fmtEx(EX.arms.slice(0,2)), fmtEx(EX.forearms.slice(0,1)),
+   498|        ...(fat?[{n:t('ex_rowing'),s:'1',r:'15min',rest:'-'}]:[]),
+   499|      ]},
+   500|      { name:t('day3_legs'), ex:[
+   501|
